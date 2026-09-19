@@ -1,0 +1,8 @@
+{
+  "_description": "Produced by rag/ from an incident.json plus retrieved safety text. Consumed by backend/ (storage) and frontend/ (display).",
+  "incident_ref": "incident-00042",
+  "report_text": "A person entered the Lab 2 restricted area at 18:30 and remained for 4.2 seconds (confidence 0.94). Per the restricted-area policy, unauthorized presence in this zone requires operator verification.",
+  "suggested_action": "Notify the assigned security operator and verify authorization.",
+  "source_section": "Restricted Area Rules, Section 2 - Unauthorized Entry",
+  "created_time": "2026-09-19T18:30:07Z"
+}

@@ -1,0 +1,11 @@
+{
+  "_description": "Produced once the event classifier confirms a candidate. Consumed by rag/ (to generate a report) and stored by backend/.",
+  "event_type": "restricted_area_entry",
+  "camera_name": "CAM 03",
+  "zone_name": "Lab 2 restricted area",
+  "timestamp": "2026-09-19T18:30:04Z",
+  "confidence": 0.94,
+  "duration_seconds": 4.2,
+  "severity": "medium",
+  "status": "open"
+}

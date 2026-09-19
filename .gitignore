@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Env / secrets
+.env
+.env.*
+*.local
+
+# Data / models (kept out of git — too large, and video stays local per design)
+*.db
+*.sqlite3
+data/raw/
+data/videos/
+*.pt
+*.onnx
+chroma_db/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

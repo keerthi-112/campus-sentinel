@@ -1,0 +1,12 @@
+{
+  "_description": "Produced by vision/ after tracking + zone/crowd logic. Consumed by federated/ (as training input) and by the event classifier at decision time.",
+  "camera_name": "CAM 03",
+  "zone_name": "Lab 2 restricted area",
+  "timestamp": "2026-09-19T18:30:00Z",
+  "person_count": 3,
+  "density": 0.42,
+  "occupancy": true,
+  "motion_score": 0.18,
+  "zone_dwell_seconds": 4.2,
+  "max_confidence": 0.94
+}
