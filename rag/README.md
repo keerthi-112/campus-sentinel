@@ -101,7 +101,7 @@ rag/
   demo.py                      # narrated end-to-end demo
 ```
 
-Embeddings: `nomic-embed-text` via Ollama. LLM: `llama3.1:8b` via Ollama. Both
+Embeddings: `nomic-embed-text` via Ollama. LLM: `llama3.2:3b` via Ollama. Both
 run fully locally — no incident data or document content leaves the machine.
 
 ## Notes for integration
