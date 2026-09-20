@@ -2,7 +2,14 @@
 import chromadb
 import ollama
 
-from config import CHROMA_DIR, COLLECTION_METADATA, COLLECTION_NAME, EMBED_MODEL, RETRIEVAL_TOP_K
+from config import (
+    CHROMA_DIR,
+    COLLECTION_METADATA,
+    COLLECTION_NAME,
+    EMBED_MODEL,
+    QUERY_PREFIX,
+    RETRIEVAL_TOP_K,
+)
 
 
 def get_collection():
@@ -16,7 +23,7 @@ def retrieve(query: str, k: int = RETRIEVAL_TOP_K) -> list[dict]:
     if collection.count() == 0:
         raise RuntimeError("Knowledge base is empty — run `python ingest.py` first.")
 
-    query_embedding = ollama.embeddings(model=EMBED_MODEL, prompt=query)["embedding"]
+    query_embedding = ollama.embeddings(model=EMBED_MODEL, prompt=QUERY_PREFIX + query)["embedding"]
     results = collection.query(query_embeddings=[query_embedding], n_results=k)
 
     hits = []
