@@ -19,9 +19,13 @@ pip install -r requirements.txt
 Requires [Ollama](https://ollama.com) running locally with both models pulled:
 
 ```
-ollama pull nomic-embed-text
-ollama pull llama3.1:8b
+ollama pull nomic-embed-text     # embeddings — required for ingest/retrieve
+ollama pull llama3.2:3b          # generation — required for reports/chat
 ```
+
+`config.py` points `LLM_MODEL` at `llama3.2:3b`. Any instruct model Ollama can
+serve works — set it to `llama3.1:8b` on stronger hardware, or something smaller
+if the machine is tight. Only the model name changes; nothing else does.
 
 ## Usage
 
@@ -42,7 +46,13 @@ Two harnesses cover this track's rows in the project evaluation table.
 `eval_retrieval.py` runs 14 labelled queries and reports top-1 accuracy and
 recall@k. Recall@k is the number that matters — every retrieved section goes
 into the prompt, so a correct section anywhere in the top-k is a usable result.
-Current: **100% recall@3**, 64% top-1 (the policy sections overlap by design).
+Current: **100% recall@3**, 79% top-1.
+
+The three top-1 misses are all near-ties where the section ranked first is also
+a defensible answer — e.g. "someone walked into a restricted lab after hours"
+returns *Unauthorized Entry* at 0.297 and *After-Hours Rules* at 0.299. Treat
+top-1 here as a loose signal and recall@k as the real measure, since every
+retrieved section reaches the prompt anyway.
 
 `eval_reports.py` generates reports for four synthetic incidents and checks that
 every required field is present, and that the cited `source_section` is both a
