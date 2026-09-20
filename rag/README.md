@@ -39,6 +39,7 @@ python eval_retrieval.py                   # retrieval benchmark (embedding mode
 python eval_reports.py                     # report-quality benchmark (needs the LLM)
 python serve.py                            # run the RAG API standalone on :8100
 python test_api.py                         # API scenario tests (LLM stubbed, runs in seconds)
+python demo.py                             # narrated end-to-end demo of the whole track
 ```
 
 ## Evaluation
@@ -97,6 +98,7 @@ rag/
   eval_retrieval.py         # labelled retrieval benchmark
   eval_reports.py            # report field/citation benchmark
   test_api.py                 # API scenario tests
+  demo.py                      # narrated end-to-end demo
 ```
 
 Embeddings: `nomic-embed-text` via Ollama. LLM: `llama3.1:8b` via Ollama. Both
