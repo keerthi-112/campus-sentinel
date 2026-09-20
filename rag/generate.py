@@ -39,14 +39,20 @@ def _format_excerpts(hits: list[dict]) -> str:
 
 
 def _ask(system_prompt: str, user_prompt: str) -> dict:
-    response = ollama.chat(
-        model=LLM_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        format="json",
-    )
+    try:
+        response = ollama.chat(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            format="json",
+        )
+    except ollama.ResponseError as exc:
+        raise RuntimeError(
+            f"Ollama could not serve '{LLM_MODEL}' ({exc}). "
+            f"Run `ollama pull {LLM_MODEL}`, or point LLM_MODEL in config.py at a model you have."
+        ) from exc
     return json.loads(response["message"]["content"])
 
 
