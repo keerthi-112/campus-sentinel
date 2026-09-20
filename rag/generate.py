@@ -20,7 +20,7 @@ Respond with ONLY a JSON object with exactly these fields:
 {
   "report_text": "2-3 sentence factual summary of what happened",
   "suggested_action": "the specific action the policy excerpts call for",
-  "source_section": "the single most relevant section label from the excerpts"
+  "source_section": "the full label of the single excerpt you relied on"
 }"""
 
 CHAT_SYSTEM_PROMPT = """You are the campus safety knowledge assistant. Answer the \
@@ -30,12 +30,31 @@ cover the question, say so plainly instead of guessing.
 Respond with ONLY a JSON object with exactly these fields:
 {
   "answer": "your answer, grounded in the excerpts",
-  "source_section": "the single most relevant section label from the excerpts"
+  "source_section": "the full label of the single excerpt you relied on"
 }"""
 
 
 def _format_excerpts(hits: list[dict]) -> str:
     return "\n\n".join(f"[{hit['section']}]\n{hit['text']}" for hit in hits)
+
+
+def _resolve_citation(raw: str, hits: list[dict]) -> str:
+    """Map whatever the model wrote back onto one of the labels actually retrieved.
+
+    Small models bracket-wrap, shorten, or splice these labels together. A stored
+    citation has to be an exact label or an operator can't look the policy up, so
+    the model picks *which* source and this picks how it's spelled.
+    """
+    candidates = [hit["section"] for hit in hits]
+    cleaned = (raw or "").strip().strip("[]").strip()
+
+    for candidate in candidates:
+        if cleaned == candidate:
+            return candidate
+    for candidate in candidates:
+        if candidate in cleaned or (cleaned and cleaned in candidate):
+            return candidate
+    return candidates[0]
 
 
 def _ask(system_prompt: str, user_prompt: str) -> dict:
@@ -57,7 +76,16 @@ def _ask(system_prompt: str, user_prompt: str) -> dict:
 
 
 def generate_report(incident: dict, top_k: int = RETRIEVAL_TOP_K) -> dict:
-    query = f"{incident['event_type']} in {incident['zone_name']} ({incident.get('severity', 'unknown')} severity)"
+    # Confidence and timestamp are in the query text because policies key off
+    # them (confidence thresholds, after-hours handling) and won't be retrieved
+    # by an event/zone-only query.
+    query = (
+        f"{incident['event_type']} in {incident['zone_name']}, "
+        f"{incident.get('severity', 'unknown')} severity, "
+        f"detection confidence {incident.get('confidence', 'unknown')}, "
+        f"duration {incident.get('duration_seconds', 'unknown')}s, "
+        f"at {incident.get('timestamp', 'unknown time')}"
+    )
     hits = retrieve(query, k=top_k)
 
     user_prompt = (
@@ -70,7 +98,7 @@ def generate_report(incident: dict, top_k: int = RETRIEVAL_TOP_K) -> dict:
         "incident_ref": incident.get("incident_ref", incident.get("event_type")),
         "report_text": parsed["report_text"],
         "suggested_action": parsed["suggested_action"],
-        "source_section": parsed.get("source_section", hits[0]["section"]),
+        "source_section": _resolve_citation(parsed.get("source_section", ""), hits),
         "created_time": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -82,7 +110,7 @@ def generate_chat_answer(question: str, top_k: int = RETRIEVAL_TOP_K) -> dict:
 
     return {
         "answer": parsed["answer"],
-        "source_section": parsed.get("source_section", hits[0]["section"]),
+        "source_section": _resolve_citation(parsed.get("source_section", ""), hits),
     }
 
 
