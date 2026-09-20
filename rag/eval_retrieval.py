@@ -6,8 +6,11 @@ without the LLM.
 
     python eval_retrieval.py
 """
-from config import RETRIEVAL_TOP_K
 from retrieve import retrieve
+
+# Fixed independently of config.RETRIEVAL_TOP_K so the score stays comparable
+# when generation changes how much context it feeds the model.
+BENCHMARK_K = 3
 
 # (query, section label that SHOULD be retrieved)
 TEST_SET = [
@@ -34,7 +37,7 @@ def main():
     misses = []
 
     for query, expected_section in TEST_SET:
-        hits = retrieve(query, k=RETRIEVAL_TOP_K)
+        hits = retrieve(query, k=BENCHMARK_K)
         retrieved = [hit["section"] for hit in hits]
 
         if retrieved and expected_section in retrieved[0]:
@@ -47,7 +50,7 @@ def main():
     total = len(TEST_SET)
     print(f"Queries:           {total}")
     print(f"Top-1 accuracy:    {top1_hits}/{total} ({top1_hits / total:.1%})")
-    print(f"Recall@{RETRIEVAL_TOP_K}:         {topk_hits}/{total} ({topk_hits / total:.1%})")
+    print(f"Recall@{BENCHMARK_K}:         {topk_hits}/{total} ({topk_hits / total:.1%})")
 
     if misses:
         print(f"\nMisses ({len(misses)}):")

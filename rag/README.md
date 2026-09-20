@@ -23,9 +23,9 @@ ollama pull nomic-embed-text     # embeddings — required for ingest/retrieve
 ollama pull llama3.2:3b          # generation — required for reports/chat
 ```
 
-`config.py` points `LLM_MODEL` at `llama3.2:3b`. Any instruct model Ollama can
-serve works — set it to `llama3.1:8b` on stronger hardware, or something smaller
-if the machine is tight. Only the model name changes; nothing else does.
+`config.py` points `LLM_MODEL` at `llama3.2:3b`, which is what the results below
+were measured on. Any instruct model Ollama can serve works — set it to
+`llama3.1:8b` on stronger hardware. Only the model name changes; nothing else does.
 
 ## Usage
 
@@ -58,6 +58,26 @@ retrieved section reaches the prompt anyway.
 every required field is present, and that the cited `source_section` is both a
 real section in the knowledge base and one that was actually retrieved — an
 invented citation is the clearest automatable faithfulness failure.
+Current: **4/4 on all three checks**.
+
+Citations are correct by construction rather than by prompting: the model picks
+*which* excerpt it relied on, and `_resolve_citation` in `generate.py` snaps that
+answer onto one of the labels actually retrieved. Left to its own formatting,
+`llama3.2:3b` variously shortened labels, wrapped them in brackets, and spliced
+two together — all of which produced citations an operator couldn't look up.
+
+## Known limitation
+
+Retrieval is semantic, so **conditional numeric policies don't reliably surface**.
+*Security Procedures, Section 2 - Confidence Thresholds* ("below 0.6 should be
+reviewed manually") is not retrieved for a 0.55-confidence incident even at k=5,
+because the section is phrased in operator-procedure language that doesn't sit
+near incident language in embedding space. The generated report is therefore
+silent about the manual-review requirement.
+
+Worth fixing later with a rule pass that injects threshold-triggered sections
+regardless of embedding distance — semantic search is the wrong tool for
+"if confidence < 0.6". Noted here rather than papered over.
 
 ## Layout
 

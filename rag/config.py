@@ -14,4 +14,6 @@ DOCUMENT_PREFIX = "search_document: "
 QUERY_PREFIX = "search_query: "
 LLM_MODEL = "llama3.2:3b"  # swap to "llama3.1:8b" once that pull succeeds / on stronger hardware
 
-RETRIEVAL_TOP_K = 3
+# 5 rather than 3: a single incident often touches four policies at once (the
+# entry rule, the zone tier, severity assignment, and after-hours handling).
+RETRIEVAL_TOP_K = 5
