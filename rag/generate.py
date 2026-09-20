@@ -6,9 +6,10 @@ Report shape matches docs/schemas/report.json.
 import json
 from datetime import datetime, timezone
 
+import httpx
 import ollama
 
-from config import LLM_MODEL, RETRIEVAL_TOP_K
+from config import LLM_MODEL, LLM_TIMEOUT_SECONDS, RETRIEVAL_TOP_K
 from retrieve import retrieve
 
 REPORT_SYSTEM_PROMPT = """You are a campus safety report writer. You are given a \
@@ -57,9 +58,12 @@ def _resolve_citation(raw: str, hits: list[dict]) -> str:
     return candidates[0]
 
 
+_client = ollama.Client(timeout=LLM_TIMEOUT_SECONDS)
+
+
 def _ask(system_prompt: str, user_prompt: str) -> dict:
     try:
-        response = ollama.chat(
+        response = _client.chat(
             model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -72,7 +76,25 @@ def _ask(system_prompt: str, user_prompt: str) -> dict:
             f"Ollama could not serve '{LLM_MODEL}' ({exc}). "
             f"Run `ollama pull {LLM_MODEL}`, or point LLM_MODEL in config.py at a model you have."
         ) from exc
-    return json.loads(response["message"]["content"])
+    except ollama.RequestError as exc:
+        raise RuntimeError(
+            f"Could not reach Ollama ({exc}). Is it running? Start it and retry."
+        ) from exc
+    except httpx.TimeoutException as exc:
+        raise RuntimeError(
+            f"'{LLM_MODEL}' did not respond within {LLM_TIMEOUT_SECONDS}s. "
+            f"The machine may be too slow for this model — try a smaller LLM_MODEL in config.py."
+        ) from exc
+
+    content = response["message"]["content"]
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as exc:
+        # format="json" makes this rare, but a small model can still emit a
+        # truncated object; a clear failure beats a confusing KeyError later.
+        raise RuntimeError(
+            f"'{LLM_MODEL}' returned malformed JSON: {content[:200]!r}"
+        ) from exc
 
 
 def generate_report(incident: dict, top_k: int = RETRIEVAL_TOP_K) -> dict:
