@@ -9,7 +9,14 @@ import re
 import chromadb
 import ollama
 
-from config import CHROMA_DIR, COLLECTION_METADATA, COLLECTION_NAME, DOCUMENTS_DIR, EMBED_MODEL
+from config import (
+    CHROMA_DIR,
+    COLLECTION_METADATA,
+    COLLECTION_NAME,
+    DOCUMENT_PREFIX,
+    DOCUMENTS_DIR,
+    EMBED_MODEL,
+)
 
 SECTION_PATTERN = re.compile(r"^##\s+(.*)$", re.MULTILINE)
 TITLE_PATTERN = re.compile(r"^#\s+(.*)$", re.MULTILINE)
@@ -57,7 +64,7 @@ def main():
 
     ids, texts, metadatas, embeddings = [], [], [], []
     for record in records:
-        embedding = ollama.embeddings(model=EMBED_MODEL, prompt=record["text"])["embedding"]
+        embedding = ollama.embeddings(model=EMBED_MODEL, prompt=DOCUMENT_PREFIX + record["text"])["embedding"]
         ids.append(record["id"])
         texts.append(record["text"])
         metadatas.append({"title": record["title"], "source": record["source"], "section": record["section"]})
