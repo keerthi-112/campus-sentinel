@@ -31,7 +31,23 @@ python retrieve.py "your query here"       # sanity-check retrieval on its own
 python generate.py                         # generate a report for the sample incident in docs/schemas/incident.json
 python generate.py "your question here"    # generate a chat-style answer instead
 python chat.py                             # interactive chat loop
+python eval_retrieval.py                   # retrieval benchmark (embedding model only)
+python eval_reports.py                     # report-quality benchmark (needs the LLM)
 ```
+
+## Evaluation
+
+Two harnesses cover this track's rows in the project evaluation table.
+
+`eval_retrieval.py` runs 14 labelled queries and reports top-1 accuracy and
+recall@k. Recall@k is the number that matters — every retrieved section goes
+into the prompt, so a correct section anywhere in the top-k is a usable result.
+Current: **100% recall@3**, 64% top-1 (the policy sections overlap by design).
+
+`eval_reports.py` generates reports for four synthetic incidents and checks that
+every required field is present, and that the cited `source_section` is both a
+real section in the knowledge base and one that was actually retrieved — an
+invented citation is the clearest automatable faithfulness failure.
 
 ## Layout
 
@@ -41,8 +57,11 @@ rag/
   config.py          # model names, paths, retrieval top-k
   ingest.py          # chunk (by "## " section) + embed documents -> Chroma
   retrieve.py         # query embedding + top-k retrieval
-  generate.py          # prompt assembly + Llama 3.1 8B call -> report.json / chat answer
+  generate.py          # prompt assembly + LLM call -> report.json / chat answer
   chat.py               # operator chat CLI (bypasses the incident pipeline)
+  api.py                 # FastAPI router: POST /reports, POST /chat
+  eval_retrieval.py       # labelled retrieval benchmark
+  eval_reports.py          # report field/citation benchmark
 ```
 
 Embeddings: `nomic-embed-text` via Ollama. LLM: `llama3.1:8b` via Ollama. Both
@@ -50,10 +69,24 @@ run fully locally — no incident data or document content leaves the machine.
 
 ## Notes for integration
 
-- `generate_report(incident)` in `generate.py` is what `backend/`'s future
-  `/reports` endpoint should call once an incident is confirmed.
-- `generate_chat_answer(question)` is what `backend/`'s future `/chat`
-  endpoint should call — it never needs an incident.
+The Application track mounts this track's endpoints with one line in
+`backend/app/main.py`:
+
+```python
+from rag.api import router as rag_router
+app.include_router(rag_router)
+```
+
+That gives `POST /reports` (body: an `incident.json`-shaped object) and
+`POST /chat` (body: `{"question": "..."}`). The handlers live here rather than
+in `backend/` so prompt and signature changes don't need a cross-track edit.
+If the LLM isn't available, both return a 503 whose message names the exact
+`ollama pull` that fixes it.
+
+Calling the functions directly works too:
+
+- `generate_report(incident)` — once an incident is confirmed.
+- `generate_chat_answer(question)` — never needs an incident.
 - Every document is chunked by its `## ` headings; keep that convention when
   adding new documents so `source_section` citations stay meaningful (e.g.
   "Restricted Area Rules, Section 2 - Unauthorized Entry").
