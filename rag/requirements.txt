@@ -1,3 +1,4 @@
 chromadb
 ollama
 fastapi
+uvicorn

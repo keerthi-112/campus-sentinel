@@ -37,6 +37,8 @@ python generate.py "your question here"    # generate a chat-style answer instea
 python chat.py                             # interactive chat loop
 python eval_retrieval.py                   # retrieval benchmark (embedding model only)
 python eval_reports.py                     # report-quality benchmark (needs the LLM)
+python serve.py                            # run the RAG API standalone on :8100
+python test_api.py                         # API scenario tests (LLM stubbed, runs in seconds)
 ```
 
 ## Evaluation
@@ -89,9 +91,12 @@ rag/
   retrieve.py         # query embedding + top-k retrieval
   generate.py          # prompt assembly + LLM call -> report.json / chat answer
   chat.py               # operator chat CLI (bypasses the incident pipeline)
-  api.py                 # FastAPI router: POST /reports, POST /chat
-  eval_retrieval.py       # labelled retrieval benchmark
-  eval_reports.py          # report field/citation benchmark
+  api.py                 # FastAPI router: async reports + chat
+  jobs.py                 # SQLite store for in-flight report jobs
+  serve.py                 # run this track standalone
+  eval_retrieval.py         # labelled retrieval benchmark
+  eval_reports.py            # report field/citation benchmark
+  test_api.py                 # API scenario tests
 ```
 
 Embeddings: `nomic-embed-text` via Ollama. LLM: `llama3.1:8b` via Ollama. Both
@@ -107,13 +112,53 @@ from rag.api import router as rag_router
 app.include_router(rag_router)
 ```
 
-That gives `POST /reports` (body: an `incident.json`-shaped object) and
-`POST /chat` (body: `{"question": "..."}`). The handlers live here rather than
-in `backend/` so prompt and signature changes don't need a cross-track edit.
-If the LLM isn't available, both return a 503 whose message names the exact
-`ollama pull` that fixes it.
+To run this track on its own before that happens: `python serve.py`.
 
-Calling the functions directly works too:
+### Reports are asynchronous
+
+A report takes ~27-37s to write on CPU. An operator must not wait on prose to
+learn someone is standing in a restricted zone, so the incident is acknowledged
+immediately and the report is written in the background.
+
+| Request | Response |
+|---|---|
+| `POST /reports` with an `incident.json` body | `202` + a job, in ~40ms |
+| `GET /reports/{job_id}` | the job; `status` is `pending`, `running`, `ready` or `failed` |
+| `GET /reports?limit=20` | recent jobs, newest first |
+| `POST /chat` with `{"question": "..."}` | the answer (synchronous — the operator is waiting on it) |
+
+A job looks like this; `report` is populated once `status` is `ready`, and
+`error` once it's `failed`:
+
+```json
+{
+  "job_id": "76cf796f-...", "incident_ref": "real-001", "status": "ready",
+  "report": { "...": "report.json shape" }, "error": null,
+  "created_at": "...", "started_at": "...", "finished_at": "..."
+}
+```
+
+**For the dashboard:** show the incident as soon as it's confirmed, render the
+report slot as "generating…" while `status` is `pending`/`running`, poll every
+2-3s, and show `error` on `failed`. Never block the alert on the report.
+
+Behaviour worth knowing about:
+
+- **Resubmitting the same `incident_ref`** returns the existing job with `200`
+  instead of `202`, so retries and double-clicks don't pay for a second
+  generation. A previously *failed* job is not reused, so a retry really retries.
+- **Jobs are stored in SQLite** (`report_jobs.db`), not memory — they survive a
+  restart, and work across multiple uvicorn workers.
+- **A job stranded by a restart** is failed automatically once it's older than
+  `LLM_TIMEOUT_SECONDS`, rather than leaving the dashboard polling forever. The
+  age check is what makes this safe with several workers sharing the database.
+- **Every failure path ends in `failed` with a readable `error`** — model
+  missing, Ollama down, timeout, malformed model output, or an unexpected crash.
+
+`python test_api.py` covers all of the above (31 checks, LLM stubbed so it runs
+in seconds).
+
+Calling the functions directly works too, and is synchronous:
 
 - `generate_report(incident)` — once an incident is confirmed.
 - `generate_chat_answer(question)` — never needs an incident.
