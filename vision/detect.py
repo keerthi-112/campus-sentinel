@@ -97,3 +97,4 @@ class PersonDetector:
                 ))
 
         return detections
+

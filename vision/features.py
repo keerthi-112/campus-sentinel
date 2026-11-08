@@ -9,8 +9,12 @@ live decision stage.
 
 from __future__ import annotations
 
+import json
+import os
 import time
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import TextIO
 
 import numpy as np
 
@@ -50,7 +54,7 @@ def compute_features(
         Highest detection confidence among people inside this zone.
     prev_centers : dict | None
         Previous-frame centres keyed by person_id — used to compute
-        motion score.  Pass ``None`` on the first frame.
+        motion score. Pass ``None`` on the first frame.
 
     Returns
     -------
@@ -60,20 +64,20 @@ def compute_features(
     person_count = len(detections)
 
     # ------------------------------------------------------------------
-    # density  =  total person-bbox area  /  frame area
+    # density = total person-bbox area / frame area
     # ------------------------------------------------------------------
     frame_area = frame_shape[0] * frame_shape[1]
     bbox_area = sum(d.area for d in detections)
     density = round(bbox_area / frame_area, 4) if frame_area else 0.0
 
     # ------------------------------------------------------------------
-    # occupancy  =  more than one person in the zone
+    # occupancy = more than one person in the zone/area
     # ------------------------------------------------------------------
     occupancy = person_count > 1
 
     # ------------------------------------------------------------------
-    # motion_score  =  mean centroid displacement (normalised by frame
-    #                   diagonal) between this frame and the last
+    # motion_score = mean centroid displacement (normalised by frame
+    #                diagonal) between this frame and the last
     # ------------------------------------------------------------------
     motion_score = 0.0
     if prev_centers and tracks:
@@ -98,3 +102,16 @@ def compute_features(
         "zone_dwell_seconds": round(dwell_seconds, 2),
         "max_confidence": round(max_confidence, 4),
     }
+
+
+def export_feature_vector(
+    feature_vector: dict,
+    output_path: str | Path = "data/features.jsonl",
+) -> None:
+    """
+    Append a feature vector record to a JSON-Lines file for federated learning ingestion.
+    """
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(feature_vector) + "\n")

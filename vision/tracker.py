@@ -128,3 +128,4 @@ class CentroidTracker:
             confidence=det.confidence,
         )
         self._next_id += 1
+
