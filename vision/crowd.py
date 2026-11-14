@@ -11,9 +11,6 @@ import time
 from datetime import datetime, timezone
 from dataclasses import dataclass
 
-from .detect import Detection
-
-
 @dataclass
 class CrowdConfig:
     """Configuration for crowd formation thresholds."""
@@ -106,3 +103,4 @@ class CrowdMonitor:
             self._fired = False
 
         return candidates
+
