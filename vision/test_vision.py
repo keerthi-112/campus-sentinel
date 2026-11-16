@@ -4,7 +4,7 @@ test_vision.py — Automated test suite for the vision track.
 
 Tests all modules WITHOUT requiring a webcam, display, or active video source.
 Uses synthetic data (mock detections, simulated tracker states) to validate logic
-and verify strict compliance with shared schemas.
+and verify strict compliance with shared schemas and downstream RAG requirements.
 """
 
 import sys
@@ -132,8 +132,9 @@ try:
         zone_name="Test Zone",
         polygon=[(100, 100), (300, 100), (300, 300), (100, 300)],
         dwell_threshold=0.3,
+        tier=2,
     )
-    report("ZoneConfig creation", zone.zone_name == "Test Zone")
+    report("ZoneConfig creation with tier", zone.zone_name == "Test Zone" and zone.tier == 2)
 
     monitor = ZoneMonitor([zone])
 
@@ -158,8 +159,9 @@ try:
         c = candidates[0]
         inc_dict = c.to_incident_dict()
 
-        # Validate against docs/schemas/incident.json contract
+        # Validate against docs/schemas/incident.json contract + RAG api.py:Incident model
         INCIDENT_SCHEMA_FIELDS = {
+            "incident_ref": str,
             "event_type": str,
             "camera_name": str,
             "zone_name": str,
@@ -179,8 +181,9 @@ try:
                 all_incident_fields_valid = False
 
         if all_incident_fields_valid:
-            report("to_incident_dict() 100% compliant with incident.json schema", True)
+            report("to_incident_dict() 100% compliant with incident.json and RAG API", True)
 
+        report("incident.incident_ref is non-empty string", bool(inc_dict.get("incident_ref")))
         report("incident.event_type == 'restricted_area_entry'", inc_dict["event_type"] == "restricted_area_entry")
         report("incident.status == 'open'", inc_dict["status"] == "open")
         report("incident.timestamp is ISO string with 'Z'", inc_dict["timestamp"].endswith("Z"))
@@ -224,14 +227,16 @@ try:
     report("CrowdMonitor waits for dwell duration", len(res) == 0)
 
     time.sleep(0.25)
-    res = c_mon.update(person_count=4, density=0.25, camera_name="CAM-02")
+    res = c_mon.update(person_count=4, density=0.25, camera_name="CAM-02", zone_name="Library Plaza")
     report("Crowd candidate emitted after dwell elapsed", len(res) == 1)
 
     if res:
         c_dict = res[0].to_incident_dict()
         report("crowd event_type == 'crowd_formation'", c_dict["event_type"] == "crowd_formation")
+        report("crowd incident_ref is non-empty string", bool(c_dict.get("incident_ref")))
+        report("crowd zone_name preserved", c_dict["zone_name"] == "Library Plaza")
         report("crowd incident schema matches incident.json", all(k in c_dict for k in [
-            "event_type", "camera_name", "zone_name", "timestamp", "confidence",
+            "incident_ref", "event_type", "camera_name", "zone_name", "timestamp", "confidence",
             "duration_seconds", "severity", "status"
         ]))
 
@@ -323,12 +328,12 @@ except Exception as e:
 
 
 # ==================================================================
-# TEST 7: benchmark.py & pipeline helpers
+# TEST 7: benchmark.py & pipeline helpers (including RAG dispatch)
 # ==================================================================
 print("[TEST] benchmark.py and pipeline helpers ...")
 try:
     from vision.benchmark import benchmark_pipeline_overhead
-    from vision.pipeline import _annotate, _print_candidate
+    from vision.pipeline import _annotate, _print_candidate, post_incident_to_rag
     from vision.zones import ZoneIncidentCandidate
 
     bench_res = benchmark_pipeline_overhead(num_iterations=20)
@@ -342,9 +347,16 @@ try:
         dwell_seconds=4.5,
         max_confidence=0.92,
         timestamp=time.time(),
+        tier=3,
     )
-    _print_candidate(cand, cand.to_incident_dict())
+    inc_data = cand.to_incident_dict()
+    report("Zone with tier=3 generates severity 'high'", inc_data["severity"] == "high")
+    _print_candidate(cand, inc_data)
     report("pipeline._print_candidate handles incident dict format", True)
+
+    # Test RAG delivery helper graceful error handling (unreachable local port)
+    rag_res = post_incident_to_rag(inc_data, rag_url="http://127.0.0.1:59999/reports", timeout=0.5)
+    report("post_incident_to_rag handles unreachable server gracefully", rag_res is None)
 
 except Exception as e:
     report("benchmark / pipeline helpers", False, str(e))

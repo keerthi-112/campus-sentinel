@@ -13,6 +13,9 @@ Usage
 # With Apple Silicon GPU acceleration:
     python -m vision.run_demo --device mps
 
+# Stream incidents to RAG service:
+    python -m vision.run_demo --rag-url http://127.0.0.1:8000/reports
+
 # Export feature vectors for Federated Learning:
     python -m vision.run_demo --export-features data/features.jsonl
 
@@ -45,8 +48,12 @@ def main() -> None:
                         help="Inference device: cpu, cuda, mps")
     parser.add_argument("--dwell", type=float, default=4.0,
                         help="Zone dwell persistence threshold in seconds")
+    parser.add_argument("--tier", type=int, default=2, choices=[1, 2, 3],
+                        help="Zone risk tier per safety SOP (1 = Low, 2 = Medium, 3 = High)")
     parser.add_argument("--crowd-count", type=int, default=5,
                         help="Minimum person count to trigger crowd alert")
+    parser.add_argument("--rag-url", default=None,
+                        help="URL of the RAG reports endpoint (e.g. http://127.0.0.1:8000/reports)")
     parser.add_argument("--export-features", default=None,
                         help="Path to export event feature vectors (e.g. data/features.jsonl)")
     parser.add_argument("--no-window", action="store_true",
@@ -71,6 +78,7 @@ def main() -> None:
         zone_name="Restricted Zone Alpha",
         polygon=[(160, 120), (480, 120), (480, 360), (160, 360)],
         dwell_threshold=args.dwell,
+        tier=args.tier,
     )
 
     crowd_cfg = CrowdConfig(
@@ -83,10 +91,12 @@ def main() -> None:
     print("=" * 60)
     print(f"  Source          : {camera.source} ({camera.source_type})")
     print(f"  Camera          : {camera.name}")
-    print(f"  Zone            : {demo_zone.zone_name}")
+    print(f"  Zone            : {demo_zone.zone_name} (Tier {demo_zone.tier})")
     print(f"  Dwell Threshold : {demo_zone.dwell_threshold}s")
     print(f"  Crowd Alert     : >= {crowd_cfg.threshold_count} people")
     print(f"  Model           : {args.model} ({args.device})")
+    if args.rag_url:
+        print(f"  RAG Endpoint    : {args.rag_url}")
     if args.export_features:
         print(f"  Feature Export  : {args.export_features}")
     print("  Controls        : Press 'q' in video window to exit.")
@@ -100,6 +110,7 @@ def main() -> None:
         device=args.device,
         crowd_config=crowd_cfg,
         show_window=not args.no_window,
+        rag_url=args.rag_url,
         export_features_path=args.export_features,
     )
 

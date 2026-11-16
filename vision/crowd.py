@@ -2,7 +2,8 @@
 crowd.py — Crowd formation detection from YOLO detections.
 
 Computes crowd formation events based on person count, density, and persistence
-without requiring an extra neural network.
+without requiring an extra neural network. Emits schema-compliant incidents
+for downstream consumption by RAG and backend.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 import time
 from datetime import datetime, timezone
 from dataclasses import dataclass
+
 
 @dataclass
 class CrowdConfig:
@@ -29,10 +31,13 @@ class CrowdIncidentCandidate:
     density: float
     dwell_seconds: float
     timestamp: float
+    zone_name: str = "General Area"
+    incident_ref: str | None = None
 
     def to_incident_dict(self) -> dict:
         """
-        Convert to a schema-compliant dictionary matching `docs/schemas/incident.json`.
+        Convert to a schema-compliant dictionary matching `docs/schemas/incident.json`
+        and RAG `api.py:Incident`.
         """
         if self.person_count >= 10 or self.density >= 0.50:
             severity = "high"
@@ -43,10 +48,17 @@ class CrowdIncidentCandidate:
 
         ts_iso = datetime.fromtimestamp(self.timestamp, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+        # Deterministic unique incident reference for RAG deduplication & reports
+        ts_compact = datetime.fromtimestamp(self.timestamp, timezone.utc).strftime("%Y%m%d_%H%M%S")
+        cam_slug = "".join(c for c in self.camera_name.lower() if c.isalnum() or c == "_")
+        zone_slug = "".join(c for c in self.zone_name.lower().replace(" ", "_") if c.isalnum() or c == "_")
+        ref = self.incident_ref or f"crowd_formation_{cam_slug}_{zone_slug}_{ts_compact}"
+
         return {
+            "incident_ref": ref,
             "event_type": "crowd_formation",
             "camera_name": self.camera_name,
-            "zone_name": "General Area",
+            "zone_name": self.zone_name,
             "timestamp": ts_iso,
             "confidence": 0.90,
             "duration_seconds": round(self.dwell_seconds, 1),
@@ -70,6 +82,7 @@ class CrowdMonitor:
         person_count: int,
         density: float,
         camera_name: str,
+        zone_name: str = "General Area",
     ) -> list[CrowdIncidentCandidate]:
         """
         Evaluate current count and density. Returns candidate when persistent.
@@ -95,6 +108,7 @@ class CrowdMonitor:
                         density=density,
                         dwell_seconds=elapsed,
                         timestamp=now,
+                        zone_name=zone_name,
                     )
                 )
                 self._fired = True
@@ -103,4 +117,3 @@ class CrowdMonitor:
             self._fired = False
 
         return candidates
-
