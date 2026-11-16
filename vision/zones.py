@@ -2,9 +2,9 @@
 zones.py — Restricted-zone configuration, point-in-polygon test, and dwell
 timer logic.
 
-A zone is a polygon drawn over a camera frame.  When a tracked person's
-centroid enters the polygon and *stays* there longer than ``dwell_threshold``
-seconds, the zone emits an incident candidate.  Single-frame noise never
+A zone is a polygon drawn over a camera frame. When a tracked person's
+centroid enters the polygon and stays there longer than ``dwell_threshold``
+seconds, the zone emits an incident candidate. Single-frame noise never
 reaches downstream consumers (classifier, RAG, backend).
 """
 
@@ -32,11 +32,14 @@ class ZoneConfig:
         Ordered vertices in pixel coordinates.
     dwell_threshold : float
         Seconds a person must stay inside before it counts (default 4.0).
+    tier : int
+        Risk classification tier per safety policy (1 = Low, 2 = Medium, 3 = High).
     """
 
     zone_name: str
     polygon: list[tuple[int, int]]
     dwell_threshold: float = 4.0
+    tier: int = 2
 
     def __post_init__(self) -> None:
         # Pre-compute the numpy contour for cv2.pointPolygonTest
@@ -57,7 +60,9 @@ class ZoneIncidentCandidate:
     threshold.
 
     Includes a helper method ``to_incident_dict()`` that produces records
-    strictly compliant with ``docs/schemas/incident.json`` for RAG and backend.
+    strictly compliant with ``docs/schemas/incident.json`` and the RAG
+    service's ``Incident`` schema (including unique ``incident_ref`` for
+    idempotent job queuing).
     """
 
     person_id: int
@@ -67,16 +72,19 @@ class ZoneIncidentCandidate:
     dwell_seconds: float
     max_confidence: float
     timestamp: float  # epoch seconds when threshold was crossed
+    tier: int = 2
+    incident_ref: str | None = None
 
     def to_incident_dict(self) -> dict:
         """
         Convert this candidate to a schema-compliant dictionary matching
-        `docs/schemas/incident.json`.
+        `docs/schemas/incident.json` and RAG `api.py:Incident`.
         """
-        # Calculate severity based on dwell duration and detection confidence
-        if self.dwell_seconds >= 8.0 or self.max_confidence >= 0.92:
+        # Calculate severity based on zone tier, dwell duration, and detection confidence
+        # Aligned with escalation_rules.md: Tier 3 or dwell >= 10s or high conf on Tier 2 -> high
+        if self.tier == 3 or self.dwell_seconds >= 10.0 or (self.tier >= 2 and self.max_confidence >= 0.85 and self.dwell_seconds >= 8.0):
             severity = "high"
-        elif self.dwell_seconds >= 4.0:
+        elif self.tier >= 2 or self.dwell_seconds >= 4.0:
             severity = "medium"
         else:
             severity = "low"
@@ -84,7 +92,14 @@ class ZoneIncidentCandidate:
         # UTC ISO 8601 string: YYYY-MM-DDTHH:MM:SSZ
         ts_iso = datetime.fromtimestamp(self.timestamp, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+        # Deterministic unique incident reference for RAG deduplication & reports
+        ts_compact = datetime.fromtimestamp(self.timestamp, timezone.utc).strftime("%Y%m%d_%H%M%S")
+        cam_slug = "".join(c for c in self.camera_name.lower() if c.isalnum() or c == "_")
+        zone_slug = "".join(c for c in self.zone_name.lower().replace(" ", "_") if c.isalnum() or c == "_")
+        ref = self.incident_ref or f"restricted_area_entry_{cam_slug}_{zone_slug}_{ts_compact}"
+
         return {
+            "incident_ref": ref,
             "event_type": "restricted_area_entry",
             "camera_name": self.camera_name,
             "zone_name": self.zone_name,
@@ -164,6 +179,7 @@ class ZoneMonitor:
                             dwell_seconds=elapsed,
                             max_confidence=entry.max_confidence,
                             timestamp=now,
+                            tier=zone.tier,
                         ))
                         self._fired.add((pid, zone.zone_name))
 
@@ -221,8 +237,9 @@ class ZoneMonitor:
             pts = zone._contour.reshape((-1, 1, 2))
             cv2.polylines(frame, [pts], isClosed=True,
                           color=(0, 0, 255), thickness=2)
-            # Label
+            # Label with name and tier
             tx, ty = zone.polygon[0]
-            cv2.putText(frame, zone.zone_name, (tx, max(ty - 10, 15)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+            label = f"{zone.zone_name} (Tier {zone.tier})"
+            cv2.putText(frame, label, (tx, max(ty - 10, 15)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
         return frame

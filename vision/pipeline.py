@@ -13,6 +13,8 @@ import json
 import time
 from typing import Callable
 from pathlib import Path
+import urllib.request
+import urllib.error
 import cv2
 
 from .capture import CameraConfig, VideoCapture
@@ -21,6 +23,43 @@ from .tracker import CentroidTracker, TrackedPerson
 from .zones import ZoneConfig, ZoneMonitor, ZoneIncidentCandidate
 from .crowd import CrowdConfig, CrowdMonitor, CrowdIncidentCandidate
 from .features import compute_features, export_feature_vector
+
+
+def post_incident_to_rag(
+    incident_dict: dict,
+    rag_url: str = "http://127.0.0.1:8000/reports",
+    timeout: float = 5.0,
+) -> dict | None:
+    """
+    Deliver an incident record to the RAG service endpoint (e.g. POST /reports).
+    The RAG service will queue the incident and generate a policy-cited report.
+
+    Uses the Python standard library (urllib.request) so no extra dependencies
+    are required by the vision track.
+    """
+    data = json.dumps(incident_dict).encode("utf-8")
+    req = urllib.request.Request(
+        rag_url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            resp_body = response.read().decode("utf-8")
+            res_json = json.loads(resp_body)
+            print(
+                f"[pipeline -> rag] Incident '{incident_dict.get('incident_ref')}' queued successfully "
+                f"(HTTP {response.status}, job_id: {res_json.get('job_id')}, status: {res_json.get('status')})"
+            )
+            return res_json
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode("utf-8", errors="ignore")
+        print(f"[pipeline -> rag] HTTP {e.code} error from RAG endpoint ({rag_url}): {err_body}")
+        return None
+    except urllib.error.URLError as e:
+        print(f"[pipeline -> rag] Warning: Could not reach RAG endpoint ({rag_url}): {e.reason}")
+        return None
 
 
 def run_pipeline(
@@ -33,6 +72,7 @@ def run_pipeline(
     crowd_config: CrowdConfig | None = None,
     show_window: bool = True,
     on_incident: Callable[[dict], None] | None = None,
+    rag_url: str | None = None,
     export_features_path: str | Path | None = None,
 ) -> None:
     """
@@ -57,6 +97,9 @@ def run_pipeline(
     on_incident : Callable[[dict], None] | None
         Optional callback invoked with a schema-compliant incident dict
         whenever a zone entry or crowd incident is confirmed.
+    rag_url : str | None
+        Optional URL to the RAG endpoint (e.g. "http://127.0.0.1:8000/reports").
+        When set, automatically queues confirmed incidents for RAG report generation.
     export_features_path : str | Path | None
         Optional file path to persist feature vectors as JSON-Lines.
     """
@@ -93,6 +136,7 @@ def run_pipeline(
                 person_count=len(detections),
                 density=density,
                 camera_name=cam_name,
+                zone_name=zones[0].zone_name if zones else "General Area",
             )
 
             # Combine all incident candidates
@@ -124,6 +168,8 @@ def run_pipeline(
             for c in all_candidates:
                 inc_dict = c.to_incident_dict()
                 _print_candidate(c, inc_dict)
+                if rag_url:
+                    post_incident_to_rag(inc_dict, rag_url=rag_url)
                 if on_incident:
                     on_incident(inc_dict)
 
@@ -174,6 +220,7 @@ def _print_candidate(c, incident_dict: dict) -> None:
     print(
         f"\n{'='*60}\n"
         f"[INCIDENT CONFIRMED — {incident_dict['event_type'].upper()}]\n"
+        f"  Ref         : {incident_dict['incident_ref']}\n"
         f"  Camera      : {incident_dict['camera_name']}\n"
         f"  Zone        : {incident_dict['zone_name']}\n"
         f"  Severity    : {incident_dict['severity'].upper()}\n"

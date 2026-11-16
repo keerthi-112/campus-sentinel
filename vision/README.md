@@ -1,6 +1,6 @@
 # vision/
 
-Owns: video/camera input, YOLO person detection, centroid tracking, restricted-zone monitoring, crowd formation detection, and feature vector extraction.
+Owns: video/camera input, YOLO person detection, centroid tracking, restricted-zone monitoring, crowd formation detection, feature vector extraction, and incident dispatching.
 
 - **Reads:** video file, webcam, or RTSP stream.
 - **Produces (Contract 1):** `docs/schemas/event_feature_vector.json`-compliant records handed to `federated/` for model training and live decision.
@@ -23,7 +23,8 @@ Centroid Tracking (tracker.py - stable IDs across frames)
        ▼                                 ▼
 Restricted Zones (zones.py)        Crowd Detection (crowd.py)
 - Point-in-polygon check           - Count & density threshold
-- 4.0s dwell persistence check     - Persistence dwell check
+- Dwell persistence check          - Persistence dwell check
+- Risk tiering (Tier 1/2/3)        - Zone-aware context
        │                                 │
        ▼                                 ▼
    ZoneIncidentCandidate             CrowdIncidentCandidate
@@ -31,13 +32,14 @@ Restricted Zones (zones.py)        Crowd Detection (crowd.py)
        └──────────────┬──────────────────┘
                       │ .to_incident_dict()
                       ▼
-         Incident Record (matches docs/schemas/incident.json)
+         Incident Record (matches docs/schemas/incident.json & RAG Incident)
                       │
-                      ▼
-         Event Features (features.py)
-         - Count, density, occupancy, motion score
-         - Matches docs/schemas/event_feature_vector.json
-         - Exportable to data/features.jsonl for Federated Learning
+         ┌────────────┴────────────┐
+         ▼                         ▼
+   RAG Service               Event Features (features.py)
+   (POST /reports)           - Count, density, occupancy, motion score
+   via post_incident_to_rag  - Matches docs/schemas/event_feature_vector.json
+                             - Exportable to data/features.jsonl
 ```
 
 ---
@@ -66,11 +68,14 @@ python -m vision.run_demo --source data/videos/clip.mp4 --type file
 # Apple Silicon GPU acceleration
 python -m vision.run_demo --device mps
 
-# Headless mode (no OpenCV display window, for servers/Docker)
-python -m vision.run_demo --source data/videos/clip.mp4 --type file --no-window
+# Stream incidents directly to RAG service for automatic report generation
+python -m vision.run_demo --rag-url http://127.0.0.1:8000/reports
 
 # Export features to JSONL for Federated Learning track
 python -m vision.run_demo --export-features data/features.jsonl
+
+# Configure zone tier (1 = Low, 2 = Medium, 3 = High)
+python -m vision.run_demo --tier 3 --dwell 3.0
 ```
 *Press **q** in the OpenCV window to exit.*
 
@@ -81,7 +86,7 @@ python -m vision.benchmark --frames 50
 ```
 
 ### 3. Automated Test Suite
-Runs 41 comprehensive tests checking module logic and schema compliance:
+Runs 46 comprehensive tests checking module logic, schema compliance, and RAG dispatch:
 ```bash
 python -m vision.test_vision
 ```
@@ -95,13 +100,13 @@ python -m vision.test_vision
 | `capture.py` | Unified video capture wrapper supporting files, webcams, and RTSP streams. |
 | `detect.py` | Ultralytics YOLO person detector (class 0 only) with configurable confidence threshold. |
 | `tracker.py` | Centroid tracker that matches detections across frames and assigns consistent IDs. |
-| `zones.py` | Polygon boundary definition, point-in-polygon math, and 4.0s dwell persistence check. |
+| `zones.py` | Polygon boundary definition, point-in-polygon math, risk tiers, and dwell persistence check. |
 | `crowd.py` | Crowd formation monitoring based on person density and count persistence. |
 | `features.py` | Computes density, motion score, occupancy, and exports `event_feature_vector.json`. |
-| `pipeline.py` | Wires capture → detect → track → zone/crowd → features into a continuous loop. |
+| `pipeline.py` | Wires capture → detect → track → zone/crowd → features, and dispatches incidents to RAG. |
 | `benchmark.py` | Latency (ms), FPS, and pipeline overhead measurement harness. |
 | `test_vision.py` | Unit and integration test suite with synthetic verification. |
-| `run_demo.py` | CLI entry point with configurable zone, crowd, and capture parameters. |
+| `run_demo.py` | CLI entry point with configurable camera, zone, crowd, and RAG parameters. |
 | `requirements.txt` | Core vision dependencies (`opencv-python`, `ultralytics`, `numpy`). |
 
 ---
@@ -124,14 +129,15 @@ python -m vision.test_vision
 }
 ```
 
-### 2. RAG & Backend Tracks (`docs/schemas/incident.json`)
+### 2. RAG & Backend Tracks (`docs/schemas/incident.json` & `rag/api.py:Incident`)
 `candidate.to_incident_dict()` produces:
 ```json
 {
+  "incident_ref": "restricted_area_entry_cam01_restricted_zone_alpha_20261116_085411",
   "event_type": "restricted_area_entry",
   "camera_name": "CAM 01",
   "zone_name": "Restricted Zone Alpha",
-  "timestamp": "2026-11-08T16:00:47Z",
+  "timestamp": "2026-11-16T08:54:11Z",
   "confidence": 0.92,
   "duration_seconds": 4.5,
   "severity": "high",
