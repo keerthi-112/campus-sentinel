@@ -1,3 +1,11 @@
-fastapi
-uvicorn[standard]
-sqlmodel
+# Application track — backend
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlalchemy>=2.0
+python-multipart>=0.0.9
+httpx>=0.27            # FastAPI TestClient (tests) + rag/generate.py
+
+# The backend runs the other tracks in-process, so it needs their dependencies too:
+-r ../vision/requirements.txt
+-r ../rag/requirements.txt
+-r ../federated/requirements.txt
