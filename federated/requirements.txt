@@ -1,0 +1,4 @@
+# Federated learning track
+numpy>=1.26.0
+flwr>=1.10,<2.0        # Flower — only needed for run_flower.py / flower_server.py / flower_client.py
+matplotlib>=3.8        # only needed for plots.py
