@@ -1,19 +1,48 @@
+# Campus Sentinel: full stack.
+#
+#   docker compose up --build
+#   docker compose exec ollama ollama pull nomic-embed-text
+#   docker compose exec ollama ollama pull llama3.2:3b        # or llama3.1:8b on a strong machine
+#   docker compose exec backend sh -c "cd /workspace/rag && python ingest.py"
+#
+# Dashboard: http://localhost:5173 (admin / admin123), API docs: http://localhost:8000/docs
+# Webcams can't easily be passed into Docker on Windows/macOS: use uploaded video
+# files or RTSP cameras here, or run the backend natively for a webcam demo.
+
 services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      SENTINEL_ADMIN_PASSWORD: ${SENTINEL_ADMIN_PASSWORD:-admin123}
+      SENTINEL_SECRET: ${SENTINEL_SECRET:-change-me-in-production-campus-sentinel}
+      SENTINEL_CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
     volumes:
-      - ./backend:/app
+      - ./backend/data:/workspace/backend/data          # SQLite DB + uploaded clips
+      - ./federated/artifacts:/workspace/federated/artifacts
+      - ./rag/chroma_db:/workspace/rag/chroma_db
+    depends_on:
+      - ollama
 
   frontend:
     build: ./frontend
     ports:
       - "5173:5173"
-    volumes:
-      - ./frontend:/app
+    environment:
+      BACKEND_URL: http://backend:8000
     depends_on:
       - backend
 
-  # vision, federated, and rag services get added here as each track
-  # settles on how it wants to run (script vs. long-running service).
+volumes:
+  ollama:

@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend (API :8000)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--port", "8000", "--host", "0.0.0.0"],
+      "cwd": "${workspaceFolder}/backend",
+      "justMyCode": true
+    },
+    {
+      "name": "Dashboard (:5173)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend"
+    },
+    {
+      "name": "FL: simulate FedAvg + FedProx (5 zones)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "federated.simulate",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "FL: real Flower run (server + 3 zone clients)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "federated.run_flower",
+      "args": ["--strategy", "fedavg", "--clients", "3", "--rounds", "15"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Vision CLI → backend (pick a video)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "vision.run_demo",
+      "args": ["--source", "${input:videoPath}", "--type", "file",
+               "--rag-url", "http://127.0.0.1:8000/api/incidents/ingest"],
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "inputs": [
+    { "id": "videoPath", "type": "promptString", "description": "Video file path, webcam index or RTSP URL", "default": "backend/data/videos/clip.mp4" }
+  ],
+  "compounds": [
+    { "name": "▶ Full system (backend + dashboard)", "configurations": ["Backend (API :8000)", "Dashboard (:5173)"], "stopAll": true }
+  ]
+}

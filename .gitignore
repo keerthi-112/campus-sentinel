@@ -27,5 +27,12 @@ chroma_db/
 # OS / editor
 .DS_Store
 Thumbs.db
-.vscode/
+.vscode/*
+!.vscode/launch.json
 .idea/
+
+# Application runtime data
+backend/data/
+rag/report_jobs.db*
+federated/artifacts/training_status.json
+*.tmp
