@@ -112,12 +112,20 @@ class RagBridge:
 
         changed = 0
         with SessionLocal() as db:
+            # "ready" is included because a resubmitted incident can be handed a job
+            # that had already finished (rag/jobs.py dedups by incident_ref); its
+            # status is "ready" from the start, but the report still has to be copied.
+            have_report = {ref for (ref,) in db.query(Report.incident_ref).all()}
             pending = db.query(Incident).filter(
                 Incident.report_job_id.isnot(None),
-                Incident.report_status.in_(["pending", "running"])).all()
+                Incident.report_status.in_(["pending", "running", "ready"])).all()
             for inc in pending:
+                if inc.report_status == "ready" and inc.incident_ref in have_report:
+                    continue
                 job = self._jobs.get(inc.report_job_id)
-                if not job or job["status"] == inc.report_status:
+                if not job:
+                    continue
+                if job["status"] == inc.report_status and job["status"] != "ready":
                     continue
                 inc.report_status = job["status"]
                 inc.report_error = job.get("error")

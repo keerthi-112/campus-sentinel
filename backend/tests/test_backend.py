@@ -22,6 +22,14 @@ TMP = tempfile.mkdtemp(prefix="sentinel-test-")
 os.environ["SENTINEL_DATA_DIR"] = TMP
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# Point the RAG job store at the same throw-away folder BEFORE rag/jobs.py is
+# imported (it binds JOBS_DB at import time), so stub reports from this suite
+# never land in rag/report_jobs.db, the store the real dashboard reads.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "rag"))
+import config as rag_config  # noqa: E402  (rag/config.py)
+
+rag_config.JOBS_DB = Path(TMP) / "report_jobs.db"
+
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402
@@ -106,6 +114,26 @@ class BackendTests(unittest.TestCase):
             self.assertEqual(full["report"]["suggested_action"], "stub action")
         # idempotent
         self.assertEqual(self.client.post("/api/incidents/ingest", json=inc).status_code, 200)
+
+    @unittest.skipUnless(rag.available, "rag/ not importable")
+    def test_report_copied_when_rag_job_already_finished(self):
+        # rag/jobs.py hands a resubmitted incident its existing finished job, so the
+        # incident starts out "ready"; the report text must still reach the dashboard.
+        ref = "t-already-ready-1"
+        job = rag._jobs.create(dict(SAMPLE, incident_ref=ref))
+        rag._jobs.mark_ready(job["job_id"], {
+            "incident_ref": ref, "report_text": "earlier report", "suggested_action": "earlier action",
+            "source_section": "Restricted Area Rules, Section 2 - Unauthorized Entry",
+            "created_time": "2026-01-01T00:00:00Z"})
+        inc = dict(SAMPLE, incident_ref=ref, confidence=0.93, duration_seconds=14.0,
+                   features={"person_count": 1, "density": 0.06, "occupancy": False, "motion_score": 0.02,
+                             "zone_dwell_seconds": 14.0, "max_confidence": 0.93})
+        out = self.client.post("/api/incidents/ingest", json=inc).json()
+        self.assertEqual(out["decision"], "escalated")
+        full = self._wait_report(out["incident_id"])
+        self.assertEqual(full["report_status"], "ready")
+        self.assertIsNotNone(full["report"])
+        self.assertEqual(full["report"]["suggested_action"], "earlier action")
 
     def test_classifier_suppresses_obvious_false_alarm(self):
         inc = dict(SAMPLE, incident_ref="t-sup-1", confidence=0.42, duration_seconds=4.1,

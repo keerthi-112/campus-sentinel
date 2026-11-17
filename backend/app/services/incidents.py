@@ -116,3 +116,8 @@ def queue_report(db: Session, row: Incident, force: bool = False) -> None:
         row.report_status = job["status"]
         row.report_error = job.get("error")
         db.commit()
+        if job["status"] == "ready":
+            # rag/ handed back a job that had already finished (dedup by incident_ref):
+            # copy its report now instead of leaving "ready" with no report until the next sync.
+            rag.sync_once()
+            db.refresh(row)
