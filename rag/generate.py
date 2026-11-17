@@ -76,7 +76,8 @@ def _ask(system_prompt: str, user_prompt: str) -> dict:
             f"Ollama could not serve '{LLM_MODEL}' ({exc}). "
             f"Run `ollama pull {LLM_MODEL}`, or point LLM_MODEL in config.py at a model you have."
         ) from exc
-    except ollama.RequestError as exc:
+    except (ConnectionError, ollama.RequestError) as exc:
+        # With nothing listening, the ollama library raises the built-in ConnectionError.
         raise RuntimeError(
             f"Could not reach Ollama ({exc}). Is it running? Start it and retry."
         ) from exc
