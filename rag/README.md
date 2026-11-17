@@ -106,15 +106,19 @@ run fully locally — no incident data or document content leaves the machine.
 
 ## Notes for integration
 
-The Application track mounts this track's endpoints with one line in
-`backend/app/main.py`:
+The Application track loads this track through `backend/app/services/rag_bridge.py`
+and mounts its endpoints under `/api/rag` (`POST /api/rag/reports`,
+`GET /api/rag/reports/{job_id}`, `POST /api/rag/chat`). The dashboard's own
+`/api/chat` and incident reports go through the same bridge.
 
-```python
-from rag.api import router as rag_router
-app.include_router(rag_router)
-```
+To run this track on its own: `python serve.py`.
 
-To run this track on its own before that happens: `python serve.py`.
+### Re-ingesting while the backend is running
+
+`python ingest.py` rebuilds the Chroma collection from scratch. A backend that is
+already running keeps the old collection open and its chat/reports then fail with
+`Error creating hnsw segment reader: Nothing found on disk`. **Restart the backend
+after every re-ingest.**
 
 ### Reports are asynchronous
 
