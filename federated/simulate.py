@@ -41,7 +41,9 @@ from .features import records_to_xy
 from .model import EventMLP, TrainConfig, evaluate, save_model_json
 
 FED_DIR = Path(__file__).resolve().parent
-ARTIFACTS = FED_DIR / "artifacts"
+# SENTINEL_FED_ARTIFACTS lets tests write a throwaway run elsewhere instead of
+# overwriting the committed, fully trained global model.
+ARTIFACTS = Path(os.getenv("SENTINEL_FED_ARTIFACTS", FED_DIR / "artifacts"))
 MODEL_PATH = ARTIFACTS / "global_model.json"
 ROUNDS_PATH = ARTIFACTS / "rounds.json"
 SUMMARY_PATH = ARTIFACTS / "summary.json"
@@ -313,7 +315,7 @@ def print_summary(s: dict) -> None:
               f"auc={f['auc']:.3f}  conv@{v['rounds_to_98pct']}  comm={v['total_comm_bytes']/1024:.1f} KiB")
     c = s["centralized"]["global_test"]
     print(f"{'Centralized (upper bound)':34s} acc={c['accuracy']:.3f}  f1={c['f1']:.3f}  auc={c['auc']:.3f}")
-    print(f"\nDeployed: {s['config']['deployed']}  ->  {MODEL_PATH.relative_to(FED_DIR.parent)}")
+    print(f"\nDeployed: {s['config']['deployed']}  ->  {MODEL_PATH}")
     print(s["privacy_note"])
 
 
