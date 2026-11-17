@@ -166,6 +166,25 @@ try:
 finally:
     api.generate_chat_answer = _original_chat
 
+# The real path, unstubbed: Ollama not installed / not running at all. Both the
+# query embedding (retrieve.py) and the LLM call (generate.py) must turn that into
+# a clean 503, not an unhandled ConnectionError.
+import ollama  # noqa: E402
+
+import generate  # noqa: E402
+import retrieve  # noqa: E402
+
+_dead = ollama.Client(host="http://127.0.0.1:9")
+_orig_embed, _orig_llm = retrieve._embed_client, generate._client
+retrieve._embed_client, generate._client = _dead, _dead
+try:
+    resp = client.post("/chat", json={"question": "What happens after an unauthorized entry?"})
+    check("Ollama not running -> 503", resp.status_code == 503, f"got {resp.status_code}")
+    check("503 says what to fix", any(w in resp.json().get("detail", "") for w in ("Ollama", "ingest.py")),
+          resp.text[:120])
+finally:
+    retrieve._embed_client, generate._client = _orig_embed, _orig_llm
+
 passed = sum(1 for _, ok, _ in results if ok)
 print(f"\n{passed}/{len(results)} checks passed")
 if passed != len(results):

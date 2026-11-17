@@ -3,13 +3,15 @@ test_federated.py — Tests for the federated learning track.
 
     python -m federated.test_federated
 
-Note: the end-to-end test runs a short 4-round experiment, which replaces
-artifacts/. Run `python -m federated.simulate` afterwards to restore the full run.
+The end-to-end test runs a short 4-round experiment in a temporary folder
+(via SENTINEL_FED_ARTIFACTS), so the committed global model in artifacts/ is
+never overwritten by a test run.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -105,16 +107,18 @@ class TestClassifier(unittest.TestCase):
 
 class TestEndToEnd(unittest.TestCase):
     def test_simulation_cli(self):
+        tmp = Path(tempfile.mkdtemp(prefix="sentinel-fl-test-"))
+        env = {**os.environ, "SENTINEL_FED_ARTIFACTS": str(tmp)}
         out = subprocess.run([sys.executable, "-m", "federated.simulate", "--rounds", "4",
                               "--clients", "3", "--strategy", "both", "--quiet"],
-                             cwd=REPO, capture_output=True, text=True, timeout=120)
+                             cwd=REPO, capture_output=True, text=True, timeout=120, env=env)
         self.assertEqual(out.returncode, 0, out.stderr)
-        rounds = json.loads((REPO / "federated/artifacts/rounds.json").read_text())
+        rounds = json.loads((tmp / "rounds.json").read_text())
         self.assertEqual(set(rounds["strategies"]), {"fedavg", "fedprox"})
         rec = rounds["strategies"]["fedavg"][-1]
         for key in ("round_number", "strategy", "participating_clients", "metrics", "comm_bytes"):
             self.assertIn(key, rec)
-        self.assertTrue(EventClassifier().loaded)
+        self.assertTrue(EventClassifier(tmp / "global_model.json").loaded)
 
 
 if __name__ == "__main__":

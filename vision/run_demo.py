@@ -40,7 +40,7 @@ def main() -> None:
                         help="Source type")
     parser.add_argument("--camera-name", default="CAM 01 - Main Gate",
                         help="Logical camera name")
-    parser.add_argument("--model", default="yolo11n.pt",
+    parser.add_argument("--model", default="yolo26n.pt",
                         help="YOLO model checkpoint")
     parser.add_argument("--confidence", type=float, default=0.40,
                         help="Detection confidence threshold")

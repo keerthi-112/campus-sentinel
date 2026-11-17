@@ -20,7 +20,7 @@ from .features import compute_features
 
 
 def benchmark_detector(
-    model_name: str = "yolo11n.pt",
+    model_name: str = "yolo26n.pt",
     device: str = "cpu",
     num_frames: int = 50,
     frame_size: tuple[int, int] = (480, 640),
@@ -101,7 +101,7 @@ def benchmark_pipeline_overhead(num_iterations: int = 200) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Campus Sentinel Vision Benchmark")
-    parser.add_argument("--model", default="yolo11n.pt", help="YOLO weights identifier")
+    parser.add_argument("--model", default="yolo26n.pt", help="YOLO weights identifier")
     parser.add_argument("--device", default="cpu", help="cpu / mps / cuda")
     parser.add_argument("--frames", type=int, default=30, help="Number of benchmark frames")
     args = parser.parse_args()

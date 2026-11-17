@@ -45,9 +45,9 @@ class PersonDetector:
     Parameters
     ----------
     model_name : str
-        Ultralytics model identifier.  Default ``"yolo11n.pt"`` (reliable
-        fallback).  Switch to ``"yolov8n.pt"`` or a future ``"yolo26n.pt"``
-        once available and benchmarked.
+        Ultralytics model identifier.  Default ``"yolo26n.pt"`` (the
+        dossier's primary detector).  ``"yolo11n.pt"`` is the benchmarked
+        fallback: on CPU both ran at ~10 fps and found the same people.
     confidence_threshold : float
         Minimum confidence to accept a detection (default 0.40).
     device : str
@@ -56,7 +56,7 @@ class PersonDetector:
 
     def __init__(
         self,
-        model_name: str = "yolo11n.pt",
+        model_name: str = "yolo26n.pt",
         confidence_threshold: float = 0.40,
         device: str = "cpu",
     ) -> None:
