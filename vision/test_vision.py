@@ -14,6 +14,10 @@ import tempfile
 from pathlib import Path
 import numpy as np
 
+# Windows consoles default to cp1252, which cannot print the ✅/❌ markers below.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 PASS = 0
 FAIL = 0
 RESULTS = []
@@ -390,4 +394,11 @@ else:
     print(f"  ⚠️  {FAIL} FAILURE(S) — check details above")
 print("=" * 60)
 
-sys.exit(1 if FAIL > 0 else 0)
+
+def test_vision_suite():
+    """Lets `pytest vision/test_vision.py` run the same checks."""
+    assert FAIL == 0, "\n".join(r for r in RESULTS if "❌" in r)
+
+
+if __name__ == "__main__":
+    sys.exit(1 if FAIL > 0 else 0)
