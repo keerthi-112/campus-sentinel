@@ -66,7 +66,7 @@ def run_pipeline(
     camera: CameraConfig,
     zones: list[ZoneConfig],
     *,
-    model_name: str = "yolo11n.pt",
+    model_name: str = "yolo26n.pt",
     confidence: float = 0.40,
     device: str = "cpu",
     crowd_config: CrowdConfig | None = None,
@@ -85,7 +85,7 @@ def run_pipeline(
     zones : list[ZoneConfig]
         Restricted zones drawn on this camera's view.
     model_name : str
-        YOLO checkpoint to use (e.g. "yolo11n.pt", "yolov8n.pt", or "yolo26n.pt").
+        YOLO checkpoint to use (default "yolo26n.pt"; "yolo11n.pt" is the fallback).
     confidence : float
         Detection confidence threshold.
     device : str

@@ -78,7 +78,7 @@ python -m vision.run_demo --source clip.mp4 --type file --rag-url http://127.0.0
 |---|---|
 | `SENTINEL_ADMIN_USER` / `SENTINEL_ADMIN_PASSWORD` | `admin` / `admin123` |
 | `SENTINEL_SECRET` | dev value. **Set a long random string in production** |
-| `SENTINEL_YOLO_MODEL` | `yolo11n.pt` (set `yolo26n.pt` to compare) |
+| `SENTINEL_YOLO_MODEL` | `yolo26n.pt` (set `yolo11n.pt` for the fallback detector) |
 | `SENTINEL_DEVICE` | `cpu` (`cuda`, `mps`) |
 | `SENTINEL_DATA_DIR` | `backend/data` (SQLite DB, uploaded clips, training log) |
 | `SENTINEL_INGEST_KEY` | empty = ingest endpoint open on localhost |
