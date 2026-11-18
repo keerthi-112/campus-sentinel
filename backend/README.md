@@ -30,7 +30,7 @@ Open http://127.0.0.1:8000/docs for interactive API docs. Default login:
 Tests (no Ollama, camera or GPU needed; the LLM call is stubbed):
 
 ```bash
-cd backend && python -m tests.test_backend
+cd backend && python -m tests.test_backend      # 12 tests
 ```
 
 ## What it adds to the other tracks
@@ -41,6 +41,7 @@ cd backend && python -m tests.test_backend
 | **Event classifier** | `services/incidents.py`: every candidate + its feature vector goes to the federated `EventClassifier`. Escalated → `open` incident + RAG report. Suppressed → stored as `suppressed`, so you can evaluate false-alarm filtering, and an operator can still escalate it. |
 | **Hot model swap** | When a federated run finishes, `global_model.json` is replaced atomically and the next decision uses the new model. No restart needed. |
 | **RAG integration** | `services/rag_bridge.py` imports `rag/` (fixes the flat-import issue without touching their code), reuses their job queue and worker, and syncs finished reports into `reports`. Their own endpoints are also mounted at `/api/rag/...`. |
+| **Measurements** | `services/metrics.py` records alert-decision latency, report queue / generation / total time, frame time per camera, and backend CPU / RAM. They're shown on the Reports tab, and `evaluation/eval_system.py` records them during a demo run. |
 | **Privacy** | Frames exist only in memory for the live stream. The database stores configuration, event metadata, reports, FL round logs and users, never video. |
 
 ## Endpoints (all under `/api`, Bearer token unless noted)
@@ -64,6 +65,7 @@ cd backend && python -m tests.test_backend
 | POST | `/federated/train` | admin: start a simulation or Flower run in the background |
 | POST | `/chat` | operator question → answer + cited section |
 | GET | `/system/status` | vision / classifier / RAG / Ollama health |
+| GET | `/system/metrics` | live CPU / RAM, frame time + FPS per camera, alert-decision and report latency (template §14 "System") |
 | — | `/rag/reports`, `/rag/chat` | the RAG track's own router, unchanged |
 
 Run the vision track's own CLI against this backend instead of the built-in workers:
@@ -78,7 +80,7 @@ python -m vision.run_demo --source clip.mp4 --type file --rag-url http://127.0.0
 |---|---|
 | `SENTINEL_ADMIN_USER` / `SENTINEL_ADMIN_PASSWORD` | `admin` / `admin123` |
 | `SENTINEL_SECRET` | dev value. **Set a long random string in production** |
-| `SENTINEL_YOLO_MODEL` | `yolo26n.pt` (set `yolo11n.pt` for the fallback detector) |
+| `SENTINEL_YOLO_MODEL` | `yolo26n.pt` (the template's model; `yolo11n.pt` is the §21 fallback, see `evaluation/results/EVALUATION.md`) |
 | `SENTINEL_DEVICE` | `cpu` (`cuda`, `mps`) |
 | `SENTINEL_DATA_DIR` | `backend/data` (SQLite DB, uploaded clips, training log) |
 | `SENTINEL_INGEST_KEY` | empty = ingest endpoint open on localhost |
@@ -95,7 +97,7 @@ backend/
     db.py, models.py   # SQLite + the §06 data model (users, cameras, incidents, reports, federated_rounds)
     schemas.py, auth.py
     routers/           # auth, cameras, incidents, misc (reports, federated, chat, system)
-    services/          # vision_worker, incidents (decision stage), rag_bridge, training
+    services/          # vision_worker, incidents (decision stage), rag_bridge, training, metrics
   tests/test_backend.py
   Dockerfile, docker-entrypoint.sh, requirements.txt
 ```

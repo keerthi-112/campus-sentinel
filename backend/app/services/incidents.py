@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -20,6 +21,7 @@ from sqlalchemy.orm import Session
 from federated.classifier import EventClassifier
 
 from ..models import Incident
+from . import metrics
 from .rag_bridge import rag
 
 log = logging.getLogger("sentinel.incidents")
@@ -52,6 +54,7 @@ def handle_candidate(db: Session, incident: dict, features: dict | None = None,
 
     Returns (incident_row, created). Re-sending the same incident_ref is idempotent.
     """
+    t0 = time.perf_counter()
     incident = dict(incident)
     incident["incident_ref"] = incident.get("incident_ref") or _make_ref(incident)
 
@@ -89,6 +92,7 @@ def handle_candidate(db: Session, incident: dict, features: dict | None = None,
 
     if decision["escalate"]:
         queue_report(db, row)
+    metrics.record("decision_ms", (time.perf_counter() - t0) * 1000)
     log.info("incident %s %s (score=%s)", row.incident_ref, row.classifier_decision, row.classifier_score)
     return row, True
 
@@ -116,8 +120,3 @@ def queue_report(db: Session, row: Incident, force: bool = False) -> None:
         row.report_status = job["status"]
         row.report_error = job.get("error")
         db.commit()
-        if job["status"] == "ready":
-            # rag/ handed back a job that had already finished (dedup by incident_ref):
-            # copy its report now instead of leaving "ready" with no report until the next sync.
-            rag.sync_once()
-            db.refresh(row)

@@ -18,6 +18,7 @@ FastAPI → React dashboard`.
 | `backend/` | FastAPI + SQLite, live camera workers, incident decision stage, RAG bridge | Application |
 | `frontend/` | React dashboard: live view, incidents, zone editor, FL status, chat | Application |
 | `scripts/`, `.vscode/` | one-time setup scripts, VS Code launch configs | Application |
+| `evaluation/` | §14 evaluation: test clips + labelling tool, detection, event, FL, RAG/LLM and system metrics, results report | All tracks |
 | `docs/schemas/` | Shared data contracts every track codes against | All tracks |
 
 ## Shared contracts
@@ -70,13 +71,25 @@ Open **http://localhost:5173** and sign in with **admin / admin123**. Then:
 In VS Code: *Run and Debug → ▶ Full system (backend + dashboard)*.
 With Docker: `docker compose up --build` (see the comments in `docker-compose.yml`).
 
+### Evaluation (template §14)
+
+`evaluation/` produces every number in the template's "How we will prove it works"
+table and collects them into `evaluation/results/EVALUATION.md`: person
+detection (YOLO26n vs YOLO11n), restricted-area and crowd events on labelled
+clips, federated learning, RAG and LLM reports, and system latency / resources.
+See `evaluation/README.md`.
+
+```bash
+python -m evaluation.make_scenarios && python -m evaluation.eval_events && python -m evaluation.make_report
+```
+
 ### Tests per track
 
 ```bash
 python -m vision.test_vision              # 46 checks  (repo root)
 cd rag && python test_api.py              # 31 checks
 python -m federated.test_federated        # 10 tests   (repo root)
-cd backend && python -m tests.test_backend   # 11 tests
+cd backend && python -m tests.test_backend   # 12 tests
 ```
 
 ## Workflow

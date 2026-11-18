@@ -272,3 +272,9 @@ tr.on td { background: #11233a; }
   .grid2, .grid4, .form-grid, .facts { grid-template-columns: 1fr 1fr; }
   .tabs { overflow-x: auto; }
 }
+
+/* system performance */
+.sys-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; padding: 14px; }
+.sys-grid label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+.sys-grid b { display: block; font-size: 20px; margin: 3px 0 2px; }
+.sys-grid small { color: var(--muted); font-size: 11px; }

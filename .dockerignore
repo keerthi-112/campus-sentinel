@@ -1,0 +1,10 @@
+.git
+**/node_modules
+**/__pycache__
+.venv
+backend/data
+rag/chroma_db
+rag/report_jobs.db*
+*.pt
+evaluation/clips
+evaluation/datasets

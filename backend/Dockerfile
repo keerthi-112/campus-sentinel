@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2
 
 WORKDIR /workspace
 # CPU-only PyTorch first keeps the image ~2 GB smaller than the default CUDA wheels.
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# If that index is unreachable (some networks block it), fall back to the normal PyPI wheels.
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cpu
+RUN pip install torch torchvision --index-url ${TORCH_INDEX} || pip install torch torchvision
 COPY vision/requirements.txt vision/requirements.txt
 COPY rag/requirements.txt rag/requirements.txt
 COPY federated/requirements.txt federated/requirements.txt

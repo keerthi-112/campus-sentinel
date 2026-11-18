@@ -36,3 +36,12 @@ backend/data/
 rag/report_jobs.db*
 federated/artifacts/training_status.json
 *.tmp
+
+# Evaluation: regenerable or large
+evaluation/clips/
+evaluation/clips_train/
+evaluation/datasets/
+evaluation/.sprites/
+evaluation/results/_val/
+evaluation/results/rag_stub.json
+*.pt
