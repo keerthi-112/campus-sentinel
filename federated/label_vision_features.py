@@ -35,9 +35,10 @@ from .features import CROWD_EVENT, ZONE_EVENT
 
 def weak_label(r: dict) -> int:
     """Rule used only when no human labels exist."""
+    # thresholds on the scale the vision pipeline produces (motion ≈ 0–0.03 per frame)
     if r["event_type"] == CROWD_EVENT:
-        return int(r["person_count"] >= 10 or (r["density"] >= 0.45 and r["motion_score"] >= 0.06))
-    return int(r["zone_dwell_seconds"] >= 8.0 and r["max_confidence"] >= 0.65 and r["motion_score"] < 0.06)
+        return int(r["max_confidence"] >= 0.65 and (r["motion_score"] < 0.008 or r["density"] >= 0.15))
+    return int(r["max_confidence"] >= 0.65 and r["motion_score"] < 0.008)
 
 
 def slug(s: str) -> str:

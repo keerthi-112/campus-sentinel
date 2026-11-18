@@ -23,7 +23,7 @@ import json
 import threading
 from pathlib import Path
 
-from .features import to_vector
+from .features import FEATURE_NAMES, to_vector
 from .model import EventMLP
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "artifacts" / "global_model.json"
@@ -50,6 +50,10 @@ class EventClassifier:
             return
         try:
             data = json.loads(self.model_path.read_text(encoding="utf-8"))
+            if data.get("feature_names") != FEATURE_NAMES:
+                # trained with a different feature set: ignore it until retrained
+                self._model, self.meta, self._mtime = None, {"stale_model": True}, mtime
+                return
             model = EventMLP.from_dict(data)
         except Exception:
             return  # keep the previous model if the file is unreadable
