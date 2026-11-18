@@ -36,14 +36,12 @@ from pathlib import Path
 
 import numpy as np
 
-from .data import ensure_data, list_clients, load_client, load_test
+from .data import ensure_data, list_clients, load_client, load_test, read_jsonl
 from .features import records_to_xy
 from .model import EventMLP, TrainConfig, evaluate, save_model_json
 
 FED_DIR = Path(__file__).resolve().parent
-# SENTINEL_FED_ARTIFACTS lets tests write a throwaway run elsewhere instead of
-# overwriting the committed, fully trained global model.
-ARTIFACTS = Path(os.getenv("SENTINEL_FED_ARTIFACTS", FED_DIR / "artifacts"))
+ARTIFACTS = FED_DIR / "artifacts"
 MODEL_PATH = ARTIFACTS / "global_model.json"
 ROUNDS_PATH = ARTIFACTS / "rounds.json"
 SUMMARY_PATH = ARTIFACTS / "summary.json"
@@ -200,7 +198,8 @@ def rounds_to_converge(history: list[dict], frac: float = 0.98) -> int:
 def run_experiment(strategy: str = "both", rounds: int = 20, n_clients: int = 5,
                    local_epochs: int = 3, lr: float = 0.01, batch_size: int = 32,
                    mu: float = 0.05, fraction_fit: float = 1.0, heterogeneous: bool = True,
-                   deploy: str = "fedavg", seed: int = 42, quiet: bool = False) -> dict:
+                   deploy: str = "fedavg", seed: int = 42, quiet: bool = False,
+                   real_dir: str | None = None, real_test: str | None = None) -> dict:
     run_id = uuid.uuid4().hex[:8]
     set_status(state="running", run_id=run_id, started_at=_now(), current_round=0,
                total_rounds=rounds, strategy=strategy, error=None)
@@ -208,7 +207,17 @@ def run_experiment(strategy: str = "both", rounds: int = 20, n_clients: int = 5,
         ensure_data(n_clients=n_clients)
         cids = list_clients()[:n_clients]
         clients = {cid: records_to_xy(load_client(cid)) for cid in cids}
+        # Optional extra zone clients whose features come from the REAL vision pipeline
+        # (e.g. evaluation/eval_events.py --export-fl), labelled from ground truth.
+        if real_dir:
+            for p in sorted(Path(real_dir).glob("*.jsonl")):
+                cid = f"real_{p.stem}"
+                clients[cid] = records_to_xy(read_jsonl(p))
+                cids.append(cid)
         Xt, yt = records_to_xy(load_test())
+        Xr = yr = None
+        if real_test:
+            Xr, yr = records_to_xy(read_jsonl(Path(real_test)))
         cfg = TrainConfig(lr=lr, batch_size=batch_size)
 
         def progress(strat, rnd, total, m):
@@ -288,6 +297,13 @@ def run_experiment(strategy: str = "both", rounds: int = 20, n_clients: int = 5,
                     "total_comm_bytes": h[-1]["cumulative_comm_bytes"],
                 } for s, h in histories.items()
             },
+            "real_pipeline_test": None if Xr is None else {
+                "n": int(len(yr)), "source": str(real_test),
+                **{s: evaluate(m, Xr, yr) for s, m in models.items()},
+                "centralized": evaluate(train_early_stopped(
+                    np.concatenate([c[0] for c in clients.values()]),
+                    np.concatenate([c[1] for c in clients.values()]), rounds * local_epochs, cfg, seed), Xr, yr),
+            },
             "privacy_note": "Only model parameters "
                             f"({model_bytes} bytes per transfer) left each zone; raw "
                             "events and video never did.",
@@ -315,7 +331,13 @@ def print_summary(s: dict) -> None:
               f"auc={f['auc']:.3f}  conv@{v['rounds_to_98pct']}  comm={v['total_comm_bytes']/1024:.1f} KiB")
     c = s["centralized"]["global_test"]
     print(f"{'Centralized (upper bound)':34s} acc={c['accuracy']:.3f}  f1={c['f1']:.3f}  auc={c['auc']:.3f}")
-    print(f"\nDeployed: {s['config']['deployed']}  ->  {MODEL_PATH}")
+    if s.get("real_pipeline_test"):
+        r = s["real_pipeline_test"]
+        print(f"\nOn held-out REAL vision-pipeline samples (n={r['n']}):")
+        for k, v in r.items():
+            if isinstance(v, dict):
+                print(f"   {k:12s} acc={v['accuracy']:.3f}  f1={v['f1']:.3f}")
+    print(f"\nDeployed: {s['config']['deployed']}  ->  {MODEL_PATH.relative_to(FED_DIR.parent)}")
     print(s["privacy_note"])
 
 
@@ -334,9 +356,22 @@ def main() -> None:
     ap.add_argument("--deploy", default="fedavg", choices=["fedavg", "fedprox"])
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--real-dir", default=None,
+                    help="folder of *.jsonl feature files from the real vision pipeline; each becomes an extra zone "
+                         "client (default: federated/data/real if it has files)")
+    ap.add_argument("--no-real", action="store_true", help="synthetic zones only, ignore federated/data/real")
+    ap.add_argument("--real-test", default=None,
+                    help="held-out *.jsonl of real-pipeline samples to report accuracy on")
     a = ap.parse_args()
+    from .data import DATA_DIR
+
+    real_dir = a.real_dir
+    if real_dir is None and not a.no_real and any((DATA_DIR / "real").glob("*.jsonl")):
+        real_dir = str(DATA_DIR / "real")
+        print(f"Including real vision-pipeline zone client(s) from {real_dir} (use --no-real to skip)")
     s = run_experiment(a.strategy, a.rounds, a.clients, a.local_epochs, a.lr, a.batch_size, a.mu,
-                       a.fraction_fit, not a.homogeneous, a.deploy, a.seed, a.quiet)
+                       a.fraction_fit, not a.homogeneous, a.deploy, a.seed, a.quiet,
+                       real_dir=real_dir, real_test=a.real_test)
     print_summary(s)
 
 

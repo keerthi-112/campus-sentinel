@@ -74,6 +74,7 @@ class Runtime:
     incidents: int = 0
     width: int = 0
     height: int = 0
+    frame_ms: float = 0.0  # processing time per frame (YOLO + tracking + zones), moving average
     live: dict = field(default_factory=dict)  # latest feature vector + classifier score (for the zone card)
     started_at: float = field(default_factory=time.time)
 
@@ -179,6 +180,7 @@ class CameraWorker(threading.Thread):
                 zone_monitor = ZoneMonitor([zone])
                 self.runtime.width, self.runtime.height = w, h
 
+            t_frame = time.perf_counter()
             detections = detector.detect(frame)
             tracks = tracker.update(detections)
             zone_cands = zone_monitor.update(tracks, s.camera_name)
@@ -187,7 +189,7 @@ class CameraWorker(threading.Thread):
 
             for cand in list(zone_cands) + list(crowd_cands):
                 is_zone = hasattr(cand, "person_id")
-                dwell = cand.dwell_seconds if is_zone else zone_monitor.get_zone_dwell_info(zone, tracks)[0]
+                dwell = cand.dwell_seconds  # zone: time in zone; crowd: how long the crowd has persisted
                 max_conf = cand.max_confidence if is_zone else max(
                     (d.confidence for d in detections), default=0.0)
                 fv = compute_features(detections, tracks, zone, s.camera_name, (h, w),
@@ -202,6 +204,8 @@ class CameraWorker(threading.Thread):
                     log.exception("candidate handling failed")
 
             in_zone = sum(1 for p in tracks.values() if zone_monitor.is_point_in_zone(p.center, zone))
+            ms = (time.perf_counter() - t_frame) * 1000
+            self.runtime.frame_ms = round(ms if not self.runtime.frame_ms else 0.9 * self.runtime.frame_ms + 0.1 * ms, 1)
             if self.runtime.frames % 15 == 0:  # clean frame for the zone editor (memory only)
                 with self._lock:
                     self._raw = frame.copy()
@@ -315,6 +319,7 @@ class VisionManager:
         state = r.state if w.is_alive() or r.state in ("error", "ended") else "stopped"
         return {"state": state, "error": r.error, "fps": r.fps, "frames": r.frames, "persons": r.persons,
                 "in_zone": r.in_zone, "incidents": r.incidents, "width": r.width, "height": r.height,
+                "frame_ms": r.frame_ms,
                 "live": r.live if state == "running" else {}}
 
     def jpeg(self, camera_id: int) -> bytes | None:

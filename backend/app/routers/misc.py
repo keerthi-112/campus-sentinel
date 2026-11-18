@@ -9,6 +9,7 @@ from ..auth import admin_user, current_user
 from ..db import get_db
 from ..models import Camera, FederatedRound, Incident, Report
 from ..schemas import ChatIn, ReportOut, TrainIn
+from ..services import metrics
 from ..services.incidents import classifier
 from ..services.rag_bridge import rag
 from ..services.training import latest_rounds, latest_summary, sync_rounds, training
@@ -112,3 +113,15 @@ def system_status(db: Session = Depends(get_db)):
         "incidents": {"total": db.query(Incident).count(),
                       "active": db.query(Incident).filter(Incident.status.in_(["open", "acknowledged"])).count()},
     }
+
+
+@system.get("/metrics")
+def system_metrics(db: Session = Depends(get_db)):
+    """Live latency + resource numbers for the dashboard and evaluation/eval_system.py."""
+    cams = []
+    for c in db.query(Camera).all():
+        rt = vision_manager.runtime(c.id)
+        if rt and rt["state"] == "running":
+            cams.append({"id": c.id, "camera_name": c.camera_name, "fps": rt["fps"],
+                         "frame_ms": rt.get("frame_ms"), "frames": rt["frames"]})
+    return metrics.snapshot(cams)

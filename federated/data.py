@@ -61,53 +61,58 @@ def _beta(rng, mean, k=20.0):
 
 
 def _sample(rng: np.random.Generator, prof: ZoneProfile, label_noise: float) -> dict:
-    """Draw one event candidate for a zone, with its ground-truth label."""
+    """Draw one event candidate for a zone, with its ground-truth label.
+
+    A candidate is what the vision rule emits at the moment it fires, so the
+    dwell (zone) or persistence (crowd) has just reached its threshold. Value
+    ranges match what the real pipeline produces (measured on the evaluation
+    clips): density ~0.02–0.3, motion ~0–0.03 of the frame diagonal per frame.
+    """
     is_crowd = rng.random() < prof.crowd_share
     real = rng.random() < prof.positive_rate
+    conf_hi = lambda: _beta(rng, 0.85 + prof.conf_shift, k=40)
 
     if not is_crowd:
         # ---- restricted-area entry candidates ----
-        if real:
-            # someone genuinely loitering / unauthorised: long dwell, solid detection
-            dwell = float(rng.lognormal(np.log(11), 0.45))
-            conf = _beta(rng, 0.84 + prof.conf_shift)
-            count = int(rng.choice([1, 1, 1, 2, 2, 3]))
-            motion = float(abs(rng.normal(0.025, 0.015)))
+        dwell = 4.0 + float(rng.uniform(0, 0.3))
+        if real:   # unauthorised person standing / loitering / working in the zone
+            count, conf = int(rng.choice([1, 1, 1, 2])), conf_hi()
+            motion = abs(rng.normal(0.0015, 0.0015))
         else:
-            kind = rng.choice(["pass_through", "flicker", "staff"], p=[0.45, 0.3, 0.25])
-            if kind == "pass_through":     # walked through, just over the dwell timer
-                dwell = float(rng.uniform(4.0, 7.0))
-                conf = _beta(rng, 0.78 + prof.conf_shift)
-                motion = float(abs(rng.normal(0.08, 0.03)))
-                count = int(rng.choice([1, 1, 2]))
-            elif kind == "flicker":        # shadow / reflection / partial occlusion
-                dwell = float(rng.uniform(4.0, 12.0))
-                conf = _beta(rng, 0.50 + prof.conf_shift, k=15)
-                motion = float(abs(rng.normal(0.01, 0.01)))
-                count = 1
-            else:                          # authorised staff doing routine work (hard case)
-                dwell = float(rng.lognormal(np.log(8), 0.5))
-                conf = _beta(rng, 0.82 + prof.conf_shift)
-                motion = float(abs(rng.normal(0.045, 0.02)))
-                count = int(rng.choice([1, 2]))
-        count = max(1, int(round(count * max(prof.count_scale, 0.6))))
-        density = float(np.clip(rng.normal(0.05 * count, 0.03), 0.005, 0.6))
+            kind = rng.choice(["pass_through", "misdetection", "staff"], p=[0.45, 0.30, 0.25])
+            if kind == "pass_through":     # walks slowly through, just crosses the dwell timer
+                count, conf = int(rng.choice([1, 1, 2])), conf_hi()
+                motion = abs(rng.normal(0.012, 0.005))
+            elif kind == "misdetection":   # shadow, poster, reflection, partial occlusion
+                count, conf = 1, _beta(rng, 0.50 + prof.conf_shift, k=15)
+                motion = abs(rng.normal(0.0008, 0.0008))
+            else:                          # authorised staff at work: the hard, ambiguous case
+                count, conf = int(rng.choice([1, 2])), conf_hi()
+                motion = abs(rng.normal(0.004, 0.003))
+        density = float(np.clip(count * rng.normal(0.035, 0.012), 0.005, 0.4))
     else:
         # ---- crowd formation candidates ----
+        dwell = 3.0 + float(rng.uniform(0, 0.3))
         if real:
-            # surge / fight / panic: many people, dense, moving fast
-            count = int(rng.normal(14, 4) * prof.count_scale)
-            density = float(np.clip(rng.normal(0.48, 0.10), 0.15, 0.95))
-            motion = float(abs(rng.normal(0.09, 0.035)))
-            dwell = float(rng.lognormal(np.log(9), 0.5))
+            if rng.random() < 0.6:         # gathering that stays (protest, fight circle, blockage)
+                count = max(5, int(round(rng.normal(7, 2) * prof.count_scale)))
+                motion = abs(rng.normal(0.0015, 0.0015))
+            else:                          # surge / rush
+                count = max(5, int(round(rng.normal(12, 3) * prof.count_scale)))
+                motion = abs(rng.normal(0.014, 0.006))
+            density = float(np.clip(count * rng.uniform(0.013, 0.024), 0.05, 0.9))
+            conf = _beta(rng, 0.82 + prof.conf_shift, k=40)
         else:
-            # normal congestion: class change, queue at the gate
-            count = int(rng.normal(7, 2) * prof.count_scale)
-            density = float(np.clip(rng.normal(0.30, 0.07), 0.08, 0.7))
-            motion = float(abs(rng.normal(0.04, 0.02)))
-            dwell = float(rng.uniform(3.0, 8.0))
-        count = max(5, count)
-        conf = _beta(rng, 0.80 + prof.conf_shift)
+            if rng.random() < 0.6:         # people streaming past (class change, gate rush hour)
+                count = max(5, int(round(rng.normal(6, 1))))
+                density = float(np.clip(count * rng.uniform(0.009, 0.015), 0.03, 0.5))
+                motion = abs(rng.normal(0.013, 0.005))
+                conf = _beta(rng, 0.80 + prof.conf_shift, k=40)
+            else:                          # duplicate boxes / reflections inflate the count
+                count = int(rng.choice([5, 5, 6]))
+                density = float(np.clip(count * rng.uniform(0.008, 0.016), 0.03, 0.5))
+                motion = abs(rng.normal(0.001, 0.001))
+                conf = _beta(rng, 0.52 + prof.conf_shift, k=15)
 
     label = int(real)
     if rng.random() < label_noise:
@@ -119,7 +124,7 @@ def _sample(rng: np.random.Generator, prof: ZoneProfile, label_noise: float) -> 
         "person_count": int(count),
         "density": round(density, 4),
         "occupancy": bool(count > 1),
-        "motion_score": round(motion, 4),
+        "motion_score": round(float(motion), 5),
         "zone_dwell_seconds": round(dwell, 2),
         "max_confidence": round(float(np.clip(conf, 0.25, 0.99)), 4),
         "event_type": CROWD_EVENT if is_crowd else ZONE_EVENT,

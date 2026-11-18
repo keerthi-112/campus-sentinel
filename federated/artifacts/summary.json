@@ -1,6 +1,6 @@
 {
-  "run_id": "d90180fc",
-  "created_at": "2026-11-16T16:15:56.802888+00:00",
+  "run_id": "1594638c",
+  "created_at": "2026-11-17T19:07:57.436165+00:00",
   "config": {
     "strategy": "both",
     "rounds": 20,
@@ -9,7 +9,8 @@
       "hostel",
       "lab_2",
       "library",
-      "parking"
+      "parking",
+      "real_cam03_lab2"
     ],
     "local_epochs": 3,
     "lr": 0.01,
@@ -19,190 +20,248 @@
     "heterogeneous": true,
     "deployed": "fedavg",
     "seed": 42,
-    "model_params": 145,
-    "model_bytes": 580
+    "model_params": 129,
+    "model_bytes": 516
   },
   "centralized": {
     "global_test": {
-      "accuracy": 0.884,
-      "precision": 0.8694,
-      "recall": 0.8286,
-      "f1": 0.8485,
-      "loss": 0.2986,
-      "auc": 0.9555,
+      "accuracy": 0.8752,
+      "precision": 0.8177,
+      "recall": 0.8747,
+      "f1": 0.8452,
+      "loss": 0.3196,
+      "auc": 0.939,
       "n": 1250
     },
-    "n_train": 2380
+    "n_train": 2662
   },
   "local_only": {
     "gate_1": {
       "global_test": {
-        "accuracy": 0.8168,
-        "precision": 0.9196,
-        "recall": 0.5837,
-        "f1": 0.7141,
-        "loss": 0.3749,
-        "auc": 0.9396,
+        "accuracy": 0.8296,
+        "precision": 0.8374,
+        "recall": 0.6982,
+        "f1": 0.7615,
+        "loss": 0.3611,
+        "auc": 0.9271,
         "n": 1250
       },
       "own_data": {
-        "accuracy": 0.8975,
-        "precision": 0.8835,
-        "recall": 0.7187,
-        "f1": 0.7926,
-        "loss": 0.3024,
-        "auc": 0.9092,
+        "accuracy": 0.885,
+        "precision": 0.8567,
+        "recall": 0.7554,
+        "f1": 0.8029,
+        "loss": 0.343,
+        "auc": 0.8968,
         "n": 1200
       },
       "n_train": 1200
     },
     "hostel": {
       "global_test": {
-        "accuracy": 0.8824,
-        "precision": 0.8135,
-        "recall": 0.9082,
-        "f1": 0.8582,
-        "loss": 0.3434,
-        "auc": 0.9522,
+        "accuracy": 0.8336,
+        "precision": 0.7298,
+        "recall": 0.9097,
+        "f1": 0.8099,
+        "loss": 0.4086,
+        "auc": 0.9122,
         "n": 1250
       },
       "own_data": {
-        "accuracy": 0.8269,
-        "precision": 0.7829,
-        "recall": 0.8559,
-        "f1": 0.8178,
-        "loss": 0.4066,
-        "auc": 0.8997,
+        "accuracy": 0.8192,
+        "precision": 0.7805,
+        "recall": 0.8276,
+        "f1": 0.8033,
+        "loss": 0.4424,
+        "auc": 0.8799,
         "n": 260
       },
       "n_train": 260
     },
     "lab_2": {
       "global_test": {
-        "accuracy": 0.6848,
-        "precision": 0.5628,
-        "recall": 0.8776,
-        "f1": 0.6858,
-        "loss": 1.1621,
-        "auc": 0.803,
+        "accuracy": 0.7424,
+        "precision": 0.6226,
+        "recall": 0.8604,
+        "f1": 0.7224,
+        "loss": 0.7967,
+        "auc": 0.746,
         "n": 1250
       },
       "own_data": {
-        "accuracy": 0.8167,
-        "precision": 0.8137,
-        "recall": 0.8557,
-        "f1": 0.8342,
-        "loss": 0.3968,
-        "auc": 0.9134,
+        "accuracy": 0.8556,
+        "precision": 0.7931,
+        "recall": 0.9787,
+        "f1": 0.8762,
+        "loss": 0.4394,
+        "auc": 0.8923,
         "n": 180
       },
       "n_train": 180
     },
     "library": {
       "global_test": {
-        "accuracy": 0.772,
-        "precision": 0.9116,
-        "recall": 0.4633,
-        "f1": 0.6143,
-        "loss": 0.4371,
-        "auc": 0.9183,
+        "accuracy": 0.7536,
+        "precision": 0.7915,
+        "recall": 0.499,
+        "f1": 0.6121,
+        "loss": 0.456,
+        "auc": 0.8863,
         "n": 1250
       },
       "own_data": {
-        "accuracy": 0.8688,
-        "precision": 0.8592,
-        "recall": 0.6559,
-        "f1": 0.7439,
-        "loss": 0.329,
-        "auc": 0.9305,
+        "accuracy": 0.8063,
+        "precision": 0.7975,
+        "recall": 0.578,
+        "f1": 0.6702,
+        "loss": 0.443,
+        "auc": 0.869,
         "n": 320
       },
       "n_train": 320
     },
     "parking": {
       "global_test": {
-        "accuracy": 0.8672,
-        "precision": 0.7765,
-        "recall": 0.9286,
-        "f1": 0.8457,
-        "loss": 0.3342,
-        "auc": 0.9521,
+        "accuracy": 0.7504,
+        "precision": 0.6147,
+        "recall": 0.963,
+        "f1": 0.7504,
+        "loss": 0.5136,
+        "auc": 0.8914,
         "n": 1250
       },
       "own_data": {
-        "accuracy": 0.8333,
-        "precision": 0.7384,
-        "recall": 0.8355,
-        "f1": 0.784,
-        "loss": 0.4218,
-        "auc": 0.8798,
+        "accuracy": 0.7929,
+        "precision": 0.68,
+        "recall": 0.8553,
+        "f1": 0.7577,
+        "loss": 0.4692,
+        "auc": 0.8586,
         "n": 420
       },
       "n_train": 420
+    },
+    "real_cam03_lab2": {
+      "global_test": {
+        "accuracy": 0.3896,
+        "precision": 0.3896,
+        "recall": 1.0,
+        "f1": 0.5607,
+        "loss": 7.0836,
+        "auc": 0.4016,
+        "n": 1250
+      },
+      "own_data": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "loss": 0.0001,
+        "auc": NaN,
+        "n": 282
+      },
+      "n_train": 282
     }
   },
-  "local_only_mean_accuracy": 0.8046,
+  "local_only_mean_accuracy": 0.7165,
   "zone_accuracy": {
     "gate_1": {
       "n": 1200,
-      "federated_own": 0.89,
-      "local_only_own": 0.8975,
-      "local_only_global": 0.8168
+      "federated_own": 0.8208,
+      "local_only_own": 0.885,
+      "local_only_global": 0.8296
     },
     "hostel": {
       "n": 260,
-      "federated_own": 0.8231,
-      "local_only_own": 0.8269,
-      "local_only_global": 0.8824
+      "federated_own": 0.8385,
+      "local_only_own": 0.8192,
+      "local_only_global": 0.8336
     },
     "lab_2": {
       "n": 180,
       "federated_own": 0.8278,
-      "local_only_own": 0.8167,
-      "local_only_global": 0.6848
+      "local_only_own": 0.8556,
+      "local_only_global": 0.7424
     },
     "library": {
       "n": 320,
-      "federated_own": 0.8906,
-      "local_only_own": 0.8688,
-      "local_only_global": 0.772
+      "federated_own": 0.8187,
+      "local_only_own": 0.8063,
+      "local_only_global": 0.7536
     },
     "parking": {
       "n": 420,
-      "federated_own": 0.7976,
-      "local_only_own": 0.8333,
-      "local_only_global": 0.8672
+      "federated_own": 0.8238,
+      "local_only_own": 0.7929,
+      "local_only_global": 0.7504
+    },
+    "real_cam03_lab2": {
+      "n": 282,
+      "federated_own": 0.9362,
+      "local_only_own": 1.0,
+      "local_only_global": 0.3896
     }
   },
   "federated": {
     "fedavg": {
       "final": {
-        "accuracy": 0.876,
-        "precision": 0.8731,
-        "recall": 0.8,
-        "f1": 0.8349,
-        "loss": 0.3051,
-        "auc": 0.9554,
+        "accuracy": 0.8512,
+        "precision": 0.7488,
+        "recall": 0.9302,
+        "f1": 0.8297,
+        "loss": 0.3828,
+        "auc": 0.926,
         "n": 1250
       },
-      "best_accuracy": 0.876,
-      "rounds_to_98pct": 10,
-      "total_comm_bytes": 116000
+      "best_accuracy": 0.8648,
+      "rounds_to_98pct": 5,
+      "total_comm_bytes": 123840
     },
     "fedprox": {
       "final": {
-        "accuracy": 0.8488,
-        "precision": 0.895,
-        "recall": 0.6959,
-        "f1": 0.783,
-        "loss": 0.3518,
-        "auc": 0.9466,
+        "accuracy": 0.8456,
+        "precision": 0.7466,
+        "recall": 0.9138,
+        "f1": 0.8218,
+        "loss": 0.3963,
+        "auc": 0.9197,
         "n": 1250
       },
-      "best_accuracy": 0.8488,
-      "rounds_to_98pct": 16,
-      "total_comm_bytes": 116000
+      "best_accuracy": 0.8568,
+      "rounds_to_98pct": 5,
+      "total_comm_bytes": 123840
     }
   },
-  "privacy_note": "Only model parameters (580 bytes per transfer) left each zone; raw events and video never did."
+  "real_pipeline_test": {
+    "n": 96,
+    "source": "evaluation/results/fl_real_test_samples.jsonl",
+    "fedavg": {
+      "accuracy": 0.8854,
+      "precision": 1.0,
+      "recall": 0.8854,
+      "f1": 0.9392,
+      "loss": 0.2507,
+      "auc": NaN,
+      "n": 96
+    },
+    "fedprox": {
+      "accuracy": 0.875,
+      "precision": 1.0,
+      "recall": 0.875,
+      "f1": 0.9333,
+      "loss": 0.321,
+      "auc": NaN,
+      "n": 96
+    },
+    "centralized": {
+      "accuracy": 0.875,
+      "precision": 1.0,
+      "recall": 0.875,
+      "f1": 0.9333,
+      "loss": 0.3163,
+      "auc": NaN,
+      "n": 96
+    }
+  },
+  "privacy_note": "Only model parameters (516 bytes per transfer) left each zone; raw events and video never did."
 }

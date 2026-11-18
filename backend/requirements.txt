@@ -4,6 +4,7 @@ uvicorn[standard]>=0.29
 sqlalchemy>=2.0
 python-multipart>=0.0.9
 httpx>=0.27            # FastAPI TestClient (tests) + rag/generate.py
+psutil>=5.9            # system metrics (CPU / RAM)
 
 # The backend runs the other tracks in-process, so it needs their dependencies too:
 -r ../vision/requirements.txt
