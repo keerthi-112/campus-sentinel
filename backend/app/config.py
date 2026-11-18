@@ -37,7 +37,7 @@ ADMIN_PASSWORD = os.getenv("SENTINEL_ADMIN_PASSWORD", "admin123")
 # Optional shared key for POST /api/incidents/ingest from an external vision process.
 INGEST_KEY = os.getenv("SENTINEL_INGEST_KEY", "")
 
-YOLO_MODEL = os.getenv("SENTINEL_YOLO_MODEL", "yolo26n.pt")  # template §2; yolo11n.pt is the §21 fallback
+YOLO_MODEL = os.getenv("SENTINEL_YOLO_MODEL", "yolo26n.pt")  # yolo11n.pt is the tested fallback
 DEVICE = os.getenv("SENTINEL_DEVICE", "cpu")
 
 CORS_ORIGINS = [o.strip() for o in os.getenv(

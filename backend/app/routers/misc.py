@@ -57,7 +57,7 @@ def summary():
 
 @federated.get("/history")
 def history(db: Session = Depends(get_db)):
-    """All runs that were mirrored into the database (round records from §06)."""
+    """All runs that were mirrored into the database."""
     sync_rounds()
     rows = db.query(FederatedRound).order_by(FederatedRound.id).all()
     runs: dict[str, dict] = {}

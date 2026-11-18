@@ -1,5 +1,5 @@
 """
-make_report.py — Collect every evaluation result into one table per template §14.
+make_report.py — Collect every evaluation result into one results file.
 
     python -m evaluation.make_report          # -> evaluation/results/EVALUATION.md
 
@@ -27,7 +27,7 @@ def pct(v):
 
 
 def main() -> None:
-    L = [f"# Campus Sentinel: evaluation results (template §14)\n",
+    L = [f"# Campus Sentinel: evaluation results\n",
          f"_Generated {datetime.now():%Y-%m-%d %H:%M} by `python -m evaluation.make_report`._\n"]
 
     # ---------------------------------------------------------------- detection
@@ -145,7 +145,7 @@ def main() -> None:
         L.append("")
     else:
         L.append("_Needs Ollama: run `python -m evaluation.eval_rag --models llama3.2:3b llama3.1:8b` on a laptop "
-                 "with both models pulled. That also gives the timing table that justifies the model choice (§6, §21)._\n")
+                 "with both models pulled. That also gives the timing table that justifies the model choice._\n")
         L.append("## 6. LLM report: required fields, consistency with the SOP, unsupported recommendation rate\n")
         L.append("_Produced by the same `evaluation.eval_rag` run._\n")
 

@@ -65,7 +65,7 @@ cd backend && python -m tests.test_backend      # 12 tests
 | POST | `/federated/train` | admin: start a simulation or Flower run in the background |
 | POST | `/chat` | operator question → answer + cited section |
 | GET | `/system/status` | vision / classifier / RAG / Ollama health |
-| GET | `/system/metrics` | live CPU / RAM, frame time + FPS per camera, alert-decision and report latency (template §14 "System") |
+| GET | `/system/metrics` | live CPU / RAM, frame time + FPS per camera, alert-decision and report latency |
 | — | `/rag/reports`, `/rag/chat` | the RAG track's own router, unchanged |
 
 Run the vision track's own CLI against this backend instead of the built-in workers:
@@ -80,7 +80,7 @@ python -m vision.run_demo --source clip.mp4 --type file --rag-url http://127.0.0
 |---|---|
 | `SENTINEL_ADMIN_USER` / `SENTINEL_ADMIN_PASSWORD` | `admin` / `admin123` |
 | `SENTINEL_SECRET` | dev value. **Set a long random string in production** |
-| `SENTINEL_YOLO_MODEL` | `yolo26n.pt` (the template's model; `yolo11n.pt` is the §21 fallback, see `evaluation/results/EVALUATION.md`) |
+| `SENTINEL_YOLO_MODEL` | `yolo26n.pt` (`yolo11n.pt` is the tested fallback, see `evaluation/results/EVALUATION.md`) |
 | `SENTINEL_DEVICE` | `cpu` (`cuda`, `mps`) |
 | `SENTINEL_DATA_DIR` | `backend/data` (SQLite DB, uploaded clips, training log) |
 | `SENTINEL_INGEST_KEY` | empty = ingest endpoint open on localhost |
@@ -94,7 +94,7 @@ backend/
   app/
     main.py            # app, startup (DB, admin, RAG sync, camera resume), routers
     config.py          # settings + sys.path for vision/ federated/ rag/
-    db.py, models.py   # SQLite + the §06 data model (users, cameras, incidents, reports, federated_rounds)
+    db.py, models.py   # SQLite + the data model (users, cameras, incidents, reports, federated_rounds)
     schemas.py, auth.py
     routers/           # auth, cameras, incidents, misc (reports, federated, chat, system)
     services/          # vision_worker, incidents (decision stage), rag_bridge, training, metrics

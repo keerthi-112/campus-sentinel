@@ -80,7 +80,7 @@ python -m vision.run_demo --tier 3 --dwell 3.0
 *Press **q** in the OpenCV window to exit.*
 
 ### 2. Performance & Benchmark Suite
-Measures inference latency, FPS throughput, and tracking/zone overhead as required by dossier §09:
+Measures inference latency, FPS throughput, and tracking/zone overhead:
 ```bash
 python -m vision.benchmark --frames 50
 ```

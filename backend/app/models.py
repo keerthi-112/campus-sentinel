@@ -1,5 +1,5 @@
 """
-models.py — The data model from the dossier (§06).
+models.py — The application's data model.
 
 Raw video is never stored here: only camera/zone configuration, event
 metadata, generated reports, federated round logs and users.

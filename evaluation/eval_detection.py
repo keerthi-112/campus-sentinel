@@ -1,6 +1,6 @@
 """
-eval_detection.py — Person-detection metrics and the YOLO26n vs YOLO11n comparison
-(template §14 "Person detection" and §21 "compare YOLO11n and keep the better").
+eval_detection.py — Person-detection metrics and the YOLO26n vs YOLO11n comparison;
+the better model is selected.
 
     python -m evaluation.eval_detection                       # COCO128 persons, both models
     python -m evaluation.eval_detection --data my_frames.yaml # your own labelled frames
@@ -9,7 +9,7 @@ Reports, per model, for the PERSON class only:
   precision, recall, mAP@0.5, mAP@0.5:0.95   (Ultralytics validator)
   inference ms/frame and FPS on this machine  (real camera-sized frames)
 
-Caveat for the report: COCO128 images come from COCO train2017, which these
+Caveat: COCO128 images come from COCO train2017, which these
 pretrained models have seen, so the absolute numbers are optimistic. It is a
 fair *comparison* between the two models. For absolute numbers on your own
 cameras, label ~50 frames from your clips (YOLO format, class 0 = person, e.g.
@@ -96,7 +96,7 @@ def main() -> None:
 
     best = max(rows, key=lambda r: (r["mAP50_95"], -r["speed_ms_mean"]))
     out = {"device": a.device, "imgsz": a.imgsz, "results": rows, "selected": best["model"],
-           "rule": "highest person mAP50-95; ties broken by speed (template §21)"}
+           "rule": "highest person mAP50-95; ties broken by speed"}
     RES.mkdir(parents=True, exist_ok=True)
     (RES / "detection.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(f"\nSelected model: {best['model']}  -> evaluation/results/detection.json")

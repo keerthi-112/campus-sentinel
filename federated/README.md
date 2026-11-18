@@ -119,7 +119,7 @@ model. In the event evaluation, the classifier with the real zone federated in
 keeps every true restricted-area entry (recall 1.00, was 0.75) and every crowd
 (F1 1.00), with no false alerts. Full table: `evaluation/results/EVALUATION.md`.
 
-How to read this for the report:
+What the results show:
 - Every simulated zone gains from federation, and the small lab zone gains most.
 - FedAvg gets within about 2 points of the centralized upper bound without
   pooling any data.
@@ -130,8 +130,7 @@ How to read this for the report:
   handicapped by over-training.
 - FedProx is close behind FedAvg here. Its proximal term pays off under
   stronger client drift: try `--mu 0.01`, `--local-epochs 8` or
-  `--fraction-fit 0.6`. FedAvg is deployed and FedProx is the comparison, as the
-  plan's risk section says.
+  `--fraction-fit 0.6`. FedAvg is deployed and FedProx is kept as the comparison.
 
 ## Files
 

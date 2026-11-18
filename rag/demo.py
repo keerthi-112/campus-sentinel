@@ -146,9 +146,8 @@ def main() -> None:
   Alert latency:  {accepted_ms:.0f} ms        (what the operator actually waits for)
   Report latency: {total:.1f} s          (written in the background)
 
-  Still to come from the other tracks: real detections from vision/ replacing
-  the hand-written incident above, and backend/ + frontend/ rendering these
-  same endpoints as a dashboard.
+  In the full system, vision/ produces these incidents and the dashboard
+  shows the same reports and answers.
 """)
 
 

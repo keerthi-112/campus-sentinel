@@ -1,6 +1,6 @@
 """
-metrics.py — Live system measurements (template §14 "System: end-to-end latency
-and basic resource usage"). In memory only; reset on restart.
+metrics.py — Live system measurements (end-to-end latency and
+basic resource usage). In memory only; reset on restart.
 
   decision_ms        candidate from vision → classifier → incident stored (+ report queued)
   report_queue_s     incident stored → LLM starts on it (waiting behind other reports)

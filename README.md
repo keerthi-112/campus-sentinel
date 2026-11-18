@@ -5,12 +5,12 @@ video feeds, detects restricted-area entry and crowd formation, and turns
 confirmed events into sourced incident reports — without centralizing raw video.
 
 Pipeline: `Video → OpenCV → YOLO26n → tracking/zone logic → event features →
-event classifier (federated via Flower) → RAG (Chroma) → LLM (Llama 3.1 8B) →
+event classifier (federated via Flower) → RAG (Chroma) → LLM (Llama 3.2 3B via Ollama; Llama 3.1 8B on stronger hardware) →
 FastAPI → React dashboard`.
 
 ## Folder map
 
-| Folder | Owns | Track |
+| Folder | Owns | Module |
 |---|---|---|
 | `vision/` | Video capture, YOLO26n inference, zone/crowd logic | Vision & Zone |
 | `federated/` | Simulated zone clients, event classifier, Flower server | Federated Learning |
@@ -18,23 +18,23 @@ FastAPI → React dashboard`.
 | `backend/` | FastAPI + SQLite, live camera workers, incident decision stage, RAG bridge | Application |
 | `frontend/` | React dashboard: live view, incidents, zone editor, FL status, chat | Application |
 | `scripts/`, `.vscode/` | one-time setup scripts, VS Code launch configs | Application |
-| `evaluation/` | §14 evaluation: test clips + labelling tool, detection, event, FL, RAG/LLM and system metrics, results report | All tracks |
-| `docs/schemas/` | Shared data contracts every track codes against | All tracks |
+| `evaluation/` | Evaluation: test clips + labelling tool, detection, event, FL, RAG/LLM and system metrics, results report | Shared |
+| `docs/schemas/` | Shared data contracts every module codes against | Shared |
 
 ## Shared contracts
 
-Before wiring tracks together, read `docs/schemas/`. These three JSON shapes are
+Before wiring modules together, read `docs/schemas/`. These three JSON shapes are
 the interface every module agrees on:
 
 - `event_feature_vector.json` — what `vision/` hands to `federated/`
 - `incident.json` — what the event classifier hands to `rag/` and `backend/`
 - `report.json` — what `rag/` hands back to `backend/` and `frontend/`
 
-Changing a schema affects every track — flag it to the team before merging.
+Changing a schema affects every module — flag it to the team before merging.
 
 ## Running the whole system
 
-**Prerequisites:** Python 3.10–3.12, Node 20+, and [Ollama](https://ollama.com/download)
+**Prerequisites:** Python 3.10–3.13, Node 20+, and [Ollama](https://ollama.com/download)
 (only for reports and chat).
 
 **Quickest: one terminal does everything.** It checks what is installed, installs only what is
@@ -71,10 +71,10 @@ Open **http://localhost:5173** and sign in with **admin / admin123**. Then:
 In VS Code: *Run and Debug → ▶ Full system (backend + dashboard)*.
 With Docker: `docker compose up --build` (see the comments in `docker-compose.yml`).
 
-### Evaluation (template §14)
+### Evaluation
 
-`evaluation/` produces every number in the template's "How we will prove it works"
-table and collects them into `evaluation/results/EVALUATION.md`: person
+`evaluation/` measures how well every part of the system works and collects the
+results in `evaluation/results/EVALUATION.md`: person
 detection (YOLO26n vs YOLO11n), restricted-area and crowd events on labelled
 clips, federated learning, RAG and LLM reports, and system latency / resources.
 See `evaluation/README.md`.
@@ -83,7 +83,7 @@ See `evaluation/README.md`.
 python -m evaluation.make_scenarios && python -m evaluation.eval_events && python -m evaluation.make_report
 ```
 
-### Tests per track
+### Tests
 
 ```bash
 python -m vision.test_vision              # 46 checks  (repo root)

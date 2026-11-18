@@ -1,5 +1,5 @@
 """
-plots.py — Figures for the report from artifacts/rounds.json + summary.json.
+plots.py — Result figures from artifacts/rounds.json + summary.json.
 
     python -m federated.plots          # writes federated/artifacts/plots/*.png
 """

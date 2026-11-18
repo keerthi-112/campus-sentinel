@@ -1,24 +1,25 @@
 # evaluation/
 
-Everything needed to fill the template's §14 "How we will prove it works" table.
+Scripts that measure every part of Campus Sentinel and collect the results in
+`results/EVALUATION.md`.
 Nothing here changes the `vision/`, `rag/` or `federated/` code. The scripts
 import and run them as they are.
 
 ```bash
 # from the repo root, venv active
 python -m evaluation.make_scenarios                      # 15 labelled test clips (exact ground truth)
-python -m evaluation.eval_detection                      # §14 person detection, YOLO26n vs YOLO11n
-python -m evaluation.eval_events                         # §14 restricted-area + crowd events
+python -m evaluation.eval_detection                      # person detection, YOLO26n vs YOLO11n
+python -m evaluation.eval_events                         # restricted-area + crowd events
 python -m evaluation.make_scenarios --out evaluation/clips_train --variants 3
 python -m evaluation.fl_real_features                    # FL with real vision-pipeline features
-python -m evaluation.eval_rag --models llama3.2:3b llama3.1:8b   # §14 RAG + LLM report (needs Ollama)
-python -m evaluation.eval_system --seconds 120           # §14 system (while the app is running)
+python -m evaluation.eval_rag --models llama3.2:3b llama3.1:8b   # RAG + LLM report (needs Ollama)
+python -m evaluation.eval_system --seconds 120           # system latency + resources (while the app runs)
 python -m evaluation.make_report                         # -> results/EVALUATION.md
 ```
 
-| §14 row | Script | Measures | Output |
+| Part | Script | Measures | Output |
 |---|---|---|---|
-| Person detection | `eval_detection.py` | precision, recall, mAP@0.5, mAP@0.5:0.95 (person class), ms/frame, FPS for YOLO26n and YOLO11n; selects the better one (§21) | `results/detection.json` |
+| Person detection | `eval_detection.py` | precision, recall, mAP@0.5, mAP@0.5:0.95 (person class), ms/frame, FPS for YOLO26n and YOLO11n; selects the better one | `results/detection.json` |
 | Restricted-area events | `eval_events.py` | precision, recall, F1, false alerts / min, detection → alert time, lag after the dwell threshold; with and without the FL classifier | `results/events_<model>_<clips>.json` |
 | Crowd event | `eval_events.py` | per-clip accuracy, precision, recall, F1 | same file |
 | Federated learning | `federated/simulate.py`, `fl_real_features.py` | local vs federated vs centralized, convergence, communication; accuracy on real-pipeline features | `federated/artifacts/summary.json`, `results/fl_real.json` |
@@ -56,7 +57,7 @@ already-matched event count as duplicates; all other alerts are false positives.
 Zone entries shorter than the dwell threshold are negatives: an alert on them is
 a false alarm.
 
-## Notes for the report
+## Notes on the results
 
 - **YOLO26n** loads and runs with the vision track's `PersonDetector`
   unchanged (`--model yolo26n.pt`). The backend now uses it by default
@@ -68,5 +69,5 @@ a false alarm.
   retrieved excerpts) and a manual-rating sheet. Quote both.
 - **LLM model choice:** `eval_rag.py --models llama3.2:3b llama3.1:8b` gives
   seconds per report for each. If 8B is too slow on the demo laptop, that table
-  is the justification for 3B (template §21).
+  shows why 3B is the default on typical laptops.
 - `eval_rag.py --stub` is a self-test without Ollama. Its numbers are not results.
