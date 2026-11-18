@@ -1,4 +1,4 @@
-# Campus Sentinel: evaluation results (template §14)
+# Campus Sentinel: evaluation results
 
 _Generated 2026-11-17 19:16 by `python -m evaluation.make_report`._
 
@@ -11,7 +11,7 @@ Dataset: `coco128.yaml` (person class only), device `cpu`, image size 640. Speed
 | yolo26n.pt **(selected)** | 0.808 | 0.709 | 0.795 | 0.546 | 60.8 | 16.5 |
 | yolo11n.pt | 0.755 | 0.717 | 0.786 | 0.541 | 49.7 | 20.1 |
 
-Selection rule: highest person mAP50-95; ties broken by speed (template §21). COCO128 images come from COCO train2017, so absolute numbers are optimistic; the comparison between models is fair. For camera-specific numbers, pass your own labelled frames with `--data`.
+Selection rule: highest person mAP50-95; ties broken by speed. COCO128 images come from COCO train2017, so absolute numbers are optimistic; the comparison between models is fair. For camera-specific numbers, pass your own labelled frames with `--data`.
 
 ## 2. Restricted-area events: precision, recall, false alert rate, detection-to-alert time
 
@@ -63,7 +63,7 @@ The smallest zone (lab_2, 180 events) reaches 74.2% alone on the campus-wide tes
 
 Retrieval quality from the RAG track's own `rag/eval_retrieval.py`: recall@3 = 100% on 16 labelled queries.
 
-_Needs Ollama: run `python -m evaluation.eval_rag --models llama3.2:3b llama3.1:8b` on a laptop with both models pulled. That also gives the timing table that justifies the model choice (§6, §21)._
+_Needs Ollama: run `python -m evaluation.eval_rag --models llama3.2:3b llama3.1:8b` on a laptop with both models pulled. That also gives the timing table that justifies the model choice._
 
 ## 6. LLM report: required fields, consistency with the SOP, unsupported recommendation rate
 

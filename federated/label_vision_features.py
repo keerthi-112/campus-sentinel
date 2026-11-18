@@ -15,8 +15,7 @@ vision/ writes one record per frame per zone, so this script:
   4. writes federated/data/clients/<zone>.jsonl, one file per zone,
      ready for simulate.py / run_flower.py.
 
-Weak labels are a stand-in until the team hand-labels test clips — say so in
-the report if you use them.
+Weak labels are a stand-in until test clips are hand-labelled.
 """
 
 from __future__ import annotations

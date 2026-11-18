@@ -8,7 +8,7 @@ function Kpi({ label, value }) {
 
 const fmt = (s, unit, digits = 1) => (s ? `${s.mean.toFixed(digits)} ${unit} (p95 ${s.p95.toFixed(digits)})` : "—");
 
-// Template §14 "System": end-to-end latency and basic resource usage, measured live.
+// System performance: end-to-end latency and basic resource usage, measured live.
 function SystemPanel() {
   const { data: m } = usePoll("/api/system/metrics", 3000);
   if (!m) return null;

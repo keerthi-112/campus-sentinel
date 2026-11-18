@@ -30,5 +30,5 @@
     }
   ],
   "selected": "yolo26n.pt",
-  "rule": "highest person mAP50-95; ties broken by speed (template \u00a721)"
+  "rule": "highest person mAP50-95; ties broken by speed"
 }

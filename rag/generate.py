@@ -1,5 +1,5 @@
 """Turn a confirmed incident (or an operator question) into a sourced report/answer
-using retrieved safety-policy sections and Llama 3.1 8B.
+using retrieved safety-policy sections and a local Llama model through Ollama.
 
 Report shape matches docs/schemas/report.json.
 """

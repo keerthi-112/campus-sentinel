@@ -4,7 +4,7 @@ benchmark.py — Latency, throughput (FPS), and performance evaluation harness.
 Evaluates:
 - YOLO inference latency (mean, p95, min, max in ms) and effective FPS
 - End-to-end pipeline latency (capture -> detect -> track -> zone -> features)
-- Resource metrics for reporting in project dossier (§09 Evaluation)
+- Resource metrics for the evaluation results
 """
 
 from __future__ import annotations

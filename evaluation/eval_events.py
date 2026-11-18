@@ -1,5 +1,5 @@
 """
-eval_events.py — Restricted-area and crowd event evaluation (template §14).
+eval_events.py — Restricted-area and crowd event evaluation.
 
 Runs the vision track's own modules (PersonDetector → CentroidTracker →
 ZoneMonitor / CrowdMonitor → compute_features) on labelled clips, then the
@@ -195,7 +195,7 @@ def summarise(per_clip: list[dict], filtered: bool) -> dict:
                       "detection_to_alert_s_mean": round(float(np.mean(lat)), 2) if lat else None,
                       "detection_to_alert_s_p95": round(float(np.percentile(lat, 95)), 2) if lat else None,
                       "lag_after_threshold_s_mean": round(float(np.mean(lag)), 2) if lag else None}
-    # per-clip classification (template: crowd accuracy / F1 on the chosen test videos)
+    # per-clip classification (crowd accuracy / F1 per test video)
     for etype, name in ((CROWD, "crowd_clip_level"), (ZONE, "restricted_clip_level")):
         tp = fp = fn = tn = 0
         for c in per_clip:

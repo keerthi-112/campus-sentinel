@@ -1,6 +1,6 @@
 """
-eval_rag.py — RAG and LLM-report evaluation (template §14 "RAG" and "LLM report"),
-plus the LLM timing comparison behind the model choice (§6, §21).
+eval_rag.py — RAG and LLM-report evaluation,
+plus the LLM timing comparison behind the model choice.
 
 Uses the RAG track's own retrieve / generate code unchanged. Needs Ollama with
 nomic-embed-text and the LLM(s) pulled, and the knowledge base ingested.

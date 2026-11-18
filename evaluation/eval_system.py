@@ -1,6 +1,5 @@
 """
-eval_system.py — End-to-end latency and resource usage of the RUNNING system
-(template §14 "System").
+eval_system.py — End-to-end latency and resource usage of the RUNNING system.
 
 Start the system (scripts/run_all.ps1), start a camera on a clip or webcam,
 then in a second terminal:

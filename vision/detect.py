@@ -46,7 +46,7 @@ class PersonDetector:
     ----------
     model_name : str
         Ultralytics model identifier.  Default ``"yolo26n.pt"`` (the
-        dossier's primary detector).  ``"yolo11n.pt"`` is the benchmarked
+        primary detector).  ``"yolo11n.pt"`` is the benchmarked
         fallback: on CPU both ran at ~10 fps and found the same people.
     confidence_threshold : float
         Minimum confidence to accept a detection (default 0.40).
