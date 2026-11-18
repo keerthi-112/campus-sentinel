@@ -1,0 +1,200 @@
+{
+  "real_test_samples": 96,
+  "real_train_samples": 282,
+  "synthetic_only_model_on_real_samples": {
+    "accuracy": 0.7292,
+    "precision": 1.0,
+    "recall": 0.7292,
+    "f1": 0.8434,
+    "loss": 0.4864,
+    "auc": NaN,
+    "n": 96
+  },
+  "with_real_zone_on_real_samples": {
+    "n": 96,
+    "source": "/home/claude/build/campus-sentinel/evaluation/results/fl_real_test_samples.jsonl",
+    "fedavg": {
+      "accuracy": 0.8854,
+      "precision": 1.0,
+      "recall": 0.8854,
+      "f1": 0.9392,
+      "loss": 0.2507,
+      "auc": NaN,
+      "n": 96
+    },
+    "fedprox": {
+      "accuracy": 0.875,
+      "precision": 1.0,
+      "recall": 0.875,
+      "f1": 0.9333,
+      "loss": 0.321,
+      "auc": NaN,
+      "n": 96
+    },
+    "centralized": {
+      "accuracy": 0.875,
+      "precision": 1.0,
+      "recall": 0.875,
+      "f1": 0.9333,
+      "loss": 0.3163,
+      "auc": NaN,
+      "n": 96
+    }
+  },
+  "synthetic_test_accuracy": {
+    "synthetic_only_fedavg": 0.86,
+    "with_real_zone_fedavg": 0.8512
+  },
+  "events_on_test_clips": {
+    "vision_only": {
+      "restricted_area_entry": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "duplicates": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_alerts_per_min": 0.0,
+        "detection_to_alert_s_mean": 3.97,
+        "detection_to_alert_s_p95": 4.0,
+        "lag_after_threshold_s_mean": -0.03
+      },
+      "crowd_formation": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "duplicates": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_alerts_per_min": 0.0,
+        "detection_to_alert_s_mean": 3.56,
+        "detection_to_alert_s_p95": 4.0,
+        "lag_after_threshold_s_mean": 0.56
+      },
+      "crowd_clip_level": {
+        "clips": 15,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 12
+      },
+      "restricted_clip_level": {
+        "clips": 15,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 11
+      }
+    },
+    "fl_filter_synthetic_only": {
+      "restricted_area_entry": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "duplicates": 0,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571,
+        "false_alerts_per_min": 0.0,
+        "detection_to_alert_s_mean": 3.96,
+        "detection_to_alert_s_p95": 4.0,
+        "lag_after_threshold_s_mean": -0.04
+      },
+      "crowd_formation": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "duplicates": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_alerts_per_min": 0.0,
+        "detection_to_alert_s_mean": 3.56,
+        "detection_to_alert_s_p95": 4.0,
+        "lag_after_threshold_s_mean": 0.56
+      },
+      "crowd_clip_level": {
+        "clips": 15,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 12
+      },
+      "restricted_clip_level": {
+        "clips": 15,
+        "accuracy": 0.9333,
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571,
+        "tp": 3,
+        "fp": 0,
+        "fn": 1,
+        "tn": 11
+      }
+    },
+    "fl_filter_with_real_zone": {
+      "restricted_area_entry": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "duplicates": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_alerts_per_min": 0.0,
+        "detection_to_alert_s_mean": 3.97,
+        "detection_to_alert_s_p95": 4.0,
+        "lag_after_threshold_s_mean": -0.03
+      },
+      "crowd_formation": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "duplicates": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_alerts_per_min": 0.0,
+        "detection_to_alert_s_mean": 3.56,
+        "detection_to_alert_s_p95": 4.0,
+        "lag_after_threshold_s_mean": 0.56
+      },
+      "crowd_clip_level": {
+        "clips": 15,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 12
+      },
+      "restricted_clip_level": {
+        "clips": 15,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 11
+      }
+    }
+  }
+}

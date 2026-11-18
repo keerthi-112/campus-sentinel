@@ -1,0 +1,270 @@
+{
+  "model": "yolo26n.pt",
+  "conf": 0.4,
+  "clips_dir": "/home/claude/build/campus-sentinel/evaluation/clips",
+  "n_clips": 15,
+  "synthetic": true,
+  "total_minutes": 3.3,
+  "fl_model_version": "a73921c1-r20",
+  "vision_only": {
+    "restricted_area_entry": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "duplicates": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_alerts_per_min": 0.0,
+      "detection_to_alert_s_mean": 3.97,
+      "detection_to_alert_s_p95": 4.0,
+      "lag_after_threshold_s_mean": -0.03
+    },
+    "crowd_formation": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "duplicates": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_alerts_per_min": 0.0,
+      "detection_to_alert_s_mean": 3.56,
+      "detection_to_alert_s_p95": 4.0,
+      "lag_after_threshold_s_mean": 0.56
+    },
+    "crowd_clip_level": {
+      "clips": 15,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 12
+    },
+    "restricted_clip_level": {
+      "clips": 15,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 11
+    }
+  },
+  "with_fl_classifier": {
+    "restricted_area_entry": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "duplicates": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_alerts_per_min": 0.0,
+      "detection_to_alert_s_mean": 3.97,
+      "detection_to_alert_s_p95": 4.0,
+      "lag_after_threshold_s_mean": -0.03
+    },
+    "crowd_formation": {
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "duplicates": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_alerts_per_min": 0.0,
+      "detection_to_alert_s_mean": 3.56,
+      "detection_to_alert_s_p95": 4.0,
+      "lag_after_threshold_s_mean": 0.56
+    },
+    "crowd_clip_level": {
+      "clips": 15,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "tn": 12
+    },
+    "restricted_clip_level": {
+      "clips": 15,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 4,
+      "fp": 0,
+      "fn": 0,
+      "tn": 11
+    }
+  },
+  "performance": {
+    "yolo_ms_mean": 50.5,
+    "yolo_ms_p95": 64.9,
+    "pipeline_ms_mean": 50.6,
+    "fps": 19.8,
+    "frames": 2970
+  },
+  "per_clip": [
+    {
+      "clip": "brief_entry_1",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "brief_entry_2",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "cross_through_zone",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "crowd_gather_1",
+      "truth": [
+        "crowd_formation"
+      ],
+      "alerts": [
+        {
+          "type": "crowd_formation",
+          "t": 5.8,
+          "confidence": 0.787,
+          "dwell": 3.0,
+          "escalate": true,
+          "score": 0.9123
+        }
+      ]
+    },
+    {
+      "clip": "crowd_gather_2",
+      "truth": [
+        "crowd_formation"
+      ],
+      "alerts": [
+        {
+          "type": "crowd_formation",
+          "t": 5.07,
+          "confidence": 0.819,
+          "dwell": 3.0,
+          "escalate": true,
+          "score": 0.9466
+        }
+      ]
+    },
+    {
+      "clip": "crowd_gather_3",
+      "truth": [
+        "crowd_formation"
+      ],
+      "alerts": [
+        {
+          "type": "crowd_formation",
+          "t": 5.0,
+          "confidence": 0.845,
+          "dwell": 3.0,
+          "escalate": true,
+          "score": 0.9613
+        }
+      ]
+    },
+    {
+      "clip": "empty_scene",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "enter_stay_1",
+      "truth": [
+        "restricted_area_entry"
+      ],
+      "alerts": [
+        {
+          "type": "restricted_area_entry",
+          "t": 6.53,
+          "confidence": 0.868,
+          "dwell": 4.0,
+          "escalate": true,
+          "score": 0.9284
+        }
+      ]
+    },
+    {
+      "clip": "enter_stay_2",
+      "truth": [
+        "restricted_area_entry"
+      ],
+      "alerts": [
+        {
+          "type": "restricted_area_entry",
+          "t": 4.67,
+          "confidence": 0.878,
+          "dwell": 4.0,
+          "escalate": true,
+          "score": 0.9007
+        }
+      ]
+    },
+    {
+      "clip": "enter_stay_3",
+      "truth": [
+        "restricted_area_entry"
+      ],
+      "alerts": [
+        {
+          "type": "restricted_area_entry",
+          "t": 8.53,
+          "confidence": 0.884,
+          "dwell": 4.0,
+          "escalate": true,
+          "score": 0.9405
+        }
+      ]
+    },
+    {
+      "clip": "small_group_1",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "small_group_2",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "stay_while_other_passes",
+      "truth": [
+        "restricted_area_entry"
+      ],
+      "alerts": [
+        {
+          "type": "restricted_area_entry",
+          "t": 6.4,
+          "confidence": 0.807,
+          "dwell": 4.0,
+          "escalate": true,
+          "score": 0.5978
+        }
+      ]
+    },
+    {
+      "clip": "walk_past_1",
+      "truth": [],
+      "alerts": []
+    },
+    {
+      "clip": "walk_past_2",
+      "truth": [],
+      "alerts": []
+    }
+  ]
+}

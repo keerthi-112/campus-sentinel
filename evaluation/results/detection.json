@@ -1,0 +1,34 @@
+{
+  "device": "cpu",
+  "imgsz": 640,
+  "results": [
+    {
+      "model": "yolo26n.pt",
+      "data": "coco128.yaml",
+      "precision": 0.8085,
+      "recall": 0.7087,
+      "mAP50": 0.7954,
+      "mAP50_95": 0.5458,
+      "speed_ms_mean": 60.8,
+      "speed_ms_p95": 70.3,
+      "speed_fps": 16.5,
+      "speed_frames": 40,
+      "speed_frame_size": "960x540"
+    },
+    {
+      "model": "yolo11n.pt",
+      "data": "coco128.yaml",
+      "precision": 0.7553,
+      "recall": 0.7165,
+      "mAP50": 0.7863,
+      "mAP50_95": 0.5407,
+      "speed_ms_mean": 49.7,
+      "speed_ms_p95": 63.0,
+      "speed_fps": 20.1,
+      "speed_frames": 40,
+      "speed_frame_size": "960x540"
+    }
+  ],
+  "selected": "yolo26n.pt",
+  "rule": "highest person mAP50-95; ties broken by speed (template \u00a721)"
+}

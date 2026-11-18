@@ -1,0 +1,209 @@
+{
+  "run_id": "549c320a",
+  "created_at": "2026-11-17T18:40:02.404354+00:00",
+  "config": {
+    "strategy": "both",
+    "rounds": 20,
+    "clients": [
+      "gate_1",
+      "hostel",
+      "lab_2",
+      "library",
+      "parking"
+    ],
+    "local_epochs": 3,
+    "lr": 0.01,
+    "batch_size": 32,
+    "proximal_mu": 0.05,
+    "fraction_fit": 1.0,
+    "heterogeneous": true,
+    "deployed": "fedavg",
+    "seed": 42,
+    "model_params": 129,
+    "model_bytes": 516
+  },
+  "centralized": {
+    "global_test": {
+      "accuracy": 0.8704,
+      "precision": 0.8131,
+      "recall": 0.8665,
+      "f1": 0.839,
+      "loss": 0.3119,
+      "auc": 0.9381,
+      "n": 1250
+    },
+    "n_train": 2380
+  },
+  "local_only": {
+    "gate_1": {
+      "global_test": {
+        "accuracy": 0.8296,
+        "precision": 0.8374,
+        "recall": 0.6982,
+        "f1": 0.7615,
+        "loss": 0.3611,
+        "auc": 0.9271,
+        "n": 1250
+      },
+      "own_data": {
+        "accuracy": 0.885,
+        "precision": 0.8567,
+        "recall": 0.7554,
+        "f1": 0.8029,
+        "loss": 0.343,
+        "auc": 0.8968,
+        "n": 1200
+      },
+      "n_train": 1200
+    },
+    "hostel": {
+      "global_test": {
+        "accuracy": 0.8336,
+        "precision": 0.7298,
+        "recall": 0.9097,
+        "f1": 0.8099,
+        "loss": 0.4086,
+        "auc": 0.9122,
+        "n": 1250
+      },
+      "own_data": {
+        "accuracy": 0.8192,
+        "precision": 0.7805,
+        "recall": 0.8276,
+        "f1": 0.8033,
+        "loss": 0.4424,
+        "auc": 0.8799,
+        "n": 260
+      },
+      "n_train": 260
+    },
+    "lab_2": {
+      "global_test": {
+        "accuracy": 0.7424,
+        "precision": 0.6226,
+        "recall": 0.8604,
+        "f1": 0.7224,
+        "loss": 0.7967,
+        "auc": 0.746,
+        "n": 1250
+      },
+      "own_data": {
+        "accuracy": 0.8556,
+        "precision": 0.7931,
+        "recall": 0.9787,
+        "f1": 0.8762,
+        "loss": 0.4394,
+        "auc": 0.8923,
+        "n": 180
+      },
+      "n_train": 180
+    },
+    "library": {
+      "global_test": {
+        "accuracy": 0.7536,
+        "precision": 0.7915,
+        "recall": 0.499,
+        "f1": 0.6121,
+        "loss": 0.456,
+        "auc": 0.8863,
+        "n": 1250
+      },
+      "own_data": {
+        "accuracy": 0.8063,
+        "precision": 0.7975,
+        "recall": 0.578,
+        "f1": 0.6702,
+        "loss": 0.443,
+        "auc": 0.869,
+        "n": 320
+      },
+      "n_train": 320
+    },
+    "parking": {
+      "global_test": {
+        "accuracy": 0.7504,
+        "precision": 0.6147,
+        "recall": 0.963,
+        "f1": 0.7504,
+        "loss": 0.5136,
+        "auc": 0.8914,
+        "n": 1250
+      },
+      "own_data": {
+        "accuracy": 0.7929,
+        "precision": 0.68,
+        "recall": 0.8553,
+        "f1": 0.7577,
+        "loss": 0.4692,
+        "auc": 0.8586,
+        "n": 420
+      },
+      "n_train": 420
+    }
+  },
+  "local_only_mean_accuracy": 0.7819,
+  "zone_accuracy": {
+    "gate_1": {
+      "n": 1200,
+      "federated_own": 0.8717,
+      "local_only_own": 0.885,
+      "local_only_global": 0.8296
+    },
+    "hostel": {
+      "n": 260,
+      "federated_own": 0.8308,
+      "local_only_own": 0.8192,
+      "local_only_global": 0.8336
+    },
+    "lab_2": {
+      "n": 180,
+      "federated_own": 0.8222,
+      "local_only_own": 0.8556,
+      "local_only_global": 0.7424
+    },
+    "library": {
+      "n": 320,
+      "federated_own": 0.85,
+      "local_only_own": 0.8063,
+      "local_only_global": 0.7536
+    },
+    "parking": {
+      "n": 420,
+      "federated_own": 0.7452,
+      "local_only_own": 0.7929,
+      "local_only_global": 0.7504
+    }
+  },
+  "federated": {
+    "fedavg": {
+      "final": {
+        "accuracy": 0.86,
+        "precision": 0.8197,
+        "recall": 0.8214,
+        "f1": 0.8205,
+        "loss": 0.3447,
+        "auc": 0.9279,
+        "n": 1250
+      },
+      "best_accuracy": 0.8616,
+      "rounds_to_98pct": 8,
+      "total_comm_bytes": 103200
+    },
+    "fedprox": {
+      "final": {
+        "accuracy": 0.8544,
+        "precision": 0.8131,
+        "recall": 0.8131,
+        "f1": 0.8131,
+        "loss": 0.3647,
+        "auc": 0.923,
+        "n": 1250
+      },
+      "best_accuracy": 0.8544,
+      "rounds_to_98pct": 9,
+      "total_comm_bytes": 103200
+    }
+  },
+  "real_pipeline_test": null,
+  "privacy_note": "Only model parameters (516 bytes per transfer) left each zone; raw events and video never did."
+}
