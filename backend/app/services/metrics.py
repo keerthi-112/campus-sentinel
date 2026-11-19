@@ -15,7 +15,7 @@ from __future__ import annotations
 import threading
 import time
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timezone
 
 import psutil
 
@@ -44,6 +44,9 @@ def _parse(ts: str | None) -> float | None:
 
 def record_report(job: dict, incident_created_at) -> None:
     """Called once when a report job finishes."""
+    if incident_created_at is not None and incident_created_at.tzinfo is None:
+        # SQLite returns naive datetimes; they were stored in UTC.
+        incident_created_at = incident_created_at.replace(tzinfo=timezone.utc)
     created = incident_created_at.timestamp() if incident_created_at else _parse(job.get("created_at"))
     started, finished = _parse(job.get("started_at")), _parse(job.get("finished_at"))
     if finished and created:
